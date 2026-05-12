@@ -17,18 +17,50 @@ class HomeScreen extends ConsumerStatefulWidget {
 
 class _HomeScreenState
     extends ConsumerState<HomeScreen> {
+
   final TextEditingController
       _searchController =
       TextEditingController();
 
+  final ScrollController
+      _scrollController =
+      ScrollController();
+
+  @override
+  void initState() {
+    super.initState();
+
+    _scrollController.addListener(() {
+
+      // LOAD MORE DATA WHEN SCROLL NEAR BOTTOM
+      if (_scrollController.position.pixels >=
+          _scrollController
+                  .position
+                  .maxScrollExtent -
+              200) {
+
+        ref
+            .read(
+              gameProvider.notifier,
+            )
+            .fetchGames();
+      }
+    });
+  }
+
   @override
   void dispose() {
+
     _searchController.dispose();
+
+    _scrollController.dispose();
+
     super.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
+
     final gameState =
         ref.watch(gameProvider);
 
@@ -37,7 +69,9 @@ class _HomeScreenState
         child: Column(
           crossAxisAlignment:
               CrossAxisAlignment.start,
+
           children: [
+
             // HEADER
             Padding(
               padding:
@@ -45,6 +79,7 @@ class _HomeScreenState
 
               child: Row(
                 children: [
+
                   Container(
                     padding:
                         const EdgeInsets.all(
@@ -86,7 +121,13 @@ class _HomeScreenState
 
             // CONTENT
             Expanded(
-              child: SingleChildScrollView(
+              child:
+                  SingleChildScrollView(
+
+                // IMPORTANT
+                controller:
+                    _scrollController,
+
                 padding:
                     const EdgeInsets.symmetric(
                   horizontal: 16.0,
@@ -97,6 +138,7 @@ class _HomeScreenState
                       CrossAxisAlignment.start,
 
                   children: [
+
                     const Text(
                       'Temukan Game\nFavoritmu',
 
@@ -109,8 +151,8 @@ class _HomeScreenState
                     const Text(
                       'Search by name, genre, or platform',
 
-                      style: AppTheme
-                          .subtitleText,
+                      style:
+                          AppTheme.subtitleText,
                     ),
 
                     const SizedBox(height: 24),
@@ -121,6 +163,7 @@ class _HomeScreenState
                           _searchController,
 
                       onSearch: () {
+
                         ref
                             .read(
                               gameProvider
@@ -135,14 +178,15 @@ class _HomeScreenState
 
                     const SizedBox(height: 32),
 
-                    // HEADER RECOMMENDED
+                    // HEADER
                     Row(
                       children: [
+
                         const Text(
                           '🔥 Recommended Game',
 
-                          style: AppTheme
-                              .heading2,
+                          style:
+                              AppTheme.heading2,
                         ),
 
                         const Spacer(),
@@ -172,8 +216,9 @@ class _HomeScreenState
 
                     const SizedBox(height: 16),
 
-                    // GAME LIST FROM API
+                    // GAME LIST
                     gameState.when(
+
                       loading: () =>
                           const Center(
                         child:
@@ -198,7 +243,9 @@ class _HomeScreenState
                       ),
 
                       data: (games) {
+
                         if (games.isEmpty) {
+
                           return const Center(
                             child: Padding(
                               padding:
@@ -221,6 +268,7 @@ class _HomeScreenState
                         }
 
                         return ListView.builder(
+
                           shrinkWrap: true,
 
                           physics:
@@ -234,52 +282,57 @@ class _HomeScreenState
                                 context,
                                 index,
                               ) {
-                                final game =
-                                    games[index];
 
-                                return GameCard(
-                                  title:
-                                      game.name,
+                            final game =
+                                games[index];
 
-                                  releaseDate:
-                                      game
-                                          .releasedDate,
+                            return GameCard(
 
-                                  rating:
-                                      game.rating,
+                              title:
+                                  game.name,
 
-                                  platforms: game
-                                      .platforms
-                                      .join(
-                                        ', ',
-                                      ),
+                              releaseDate:
+                                  game
+                                      .releasedDate,
 
-                                  imageUrl:
-                                      game
-                                          .backgroundImage,
+                              rating:
+                                  game.rating,
 
-                                  onDetailPressed:
-                                      () {
-                                    Navigator.push(
-                                      context,
+                              platforms: game
+                                  .platforms
+                                  .join(
+                                    ', ',
+                                  ),
 
-                                      MaterialPageRoute(
-                                        builder:
-                                            (
-                                              context,
-                                            ) =>
-                                                GameDetailScreen(
-                                          game:
-                                              game,
-                                        ),
-                                      ),
-                                    );
-                                  },
+                              imageUrl:
+                                  game
+                                      .backgroundImage,
+
+                              onDetailPressed:
+                                  () {
+
+                                Navigator.push(
+                                  context,
+
+                                  MaterialPageRoute(
+                                    builder:
+                                        (
+                                          context,
+                                        ) =>
+                                            GameDetailScreen(
+                                      game:
+                                          game,
+                                    ),
+                                  ),
                                 );
                               },
+                            );
+                          },
                         );
                       },
                     ),
+
+                    const SizedBox(height: 24),
                   ],
                 ),
               ),
