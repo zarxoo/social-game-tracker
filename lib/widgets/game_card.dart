@@ -23,62 +23,131 @@ class GameCard extends StatelessWidget {
   Widget build(BuildContext context) {
     return Container(
       margin: const EdgeInsets.only(bottom: 16),
+
       decoration: BoxDecoration(
         color: AppTheme.cardColor,
         borderRadius: BorderRadius.circular(12),
       ),
+
       child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
+        crossAxisAlignment:
+            CrossAxisAlignment.start,
         children: [
           Row(
-            crossAxisAlignment: CrossAxisAlignment.start,
+            crossAxisAlignment:
+                CrossAxisAlignment.start,
             children: [
-              // Image Placeholder or Network Image
+              // IMAGE GAME
               ClipRRect(
-                borderRadius: const BorderRadius.only(
+                borderRadius:
+                    const BorderRadius.only(
                   topLeft: Radius.circular(12),
-                  bottomRight: Radius.circular(12),
+                  bottomRight:
+                      Radius.circular(12),
                 ),
-                child: Container(
+
+                child: SizedBox(
                   width: 100,
                   height: 100,
-                  color: Colors.grey[800], // Placeholder background
+
                   child: imageUrl.isNotEmpty
                       ? Image.network(
                           imageUrl,
                           fit: BoxFit.cover,
-                          errorBuilder: (context, error, stackTrace) => const Icon(Icons.image_not_supported, color: Colors.grey),
+
+                          errorBuilder:
+                              (
+                                context,
+                                error,
+                                stackTrace,
+                              ) {
+                            return Container(
+                              color: Colors.grey[800],
+
+                              child: const Icon(
+                                Icons
+                                    .image_not_supported,
+                                color: Colors.grey,
+                              ),
+                            );
+                          },
                         )
-                      : const Icon(Icons.videogame_asset, color: Colors.grey, size: 40),
+                      : Container(
+                          color: Colors.grey[800],
+
+                          child: const Icon(
+                            Icons.videogame_asset,
+                            color: Colors.grey,
+                            size: 40,
+                          ),
+                        ),
                 ),
               ),
+
               const SizedBox(width: 12),
-              // Details
+
+              // DETAIL GAME
               Expanded(
                 child: Padding(
-                  padding: const EdgeInsets.only(top: 12, right: 12),
+                  padding:
+                      const EdgeInsets.only(
+                    top: 12,
+                    right: 12,
+                  ),
+
                   child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
+                    crossAxisAlignment:
+                        CrossAxisAlignment.start,
+
                     children: [
                       Text(
                         title,
-                        style: AppTheme.heading2.copyWith(fontSize: 14),
+
+                        style: AppTheme.heading2
+                            .copyWith(
+                          fontSize: 14,
+                        ),
+
                         maxLines: 2,
-                        overflow: TextOverflow.ellipsis,
+
+                        overflow:
+                            TextOverflow.ellipsis,
                       ),
+
                       const SizedBox(height: 4),
+
                       Text(
                         'Released: $releaseDate',
-                        style: AppTheme.subtitleText.copyWith(fontSize: 10),
+
+                        style: AppTheme
+                            .subtitleText
+                            .copyWith(
+                          fontSize: 10,
+                        ),
                       ),
+
                       const SizedBox(height: 8),
+
                       Row(
                         children: [
-                          const Icon(Icons.star, color: AppTheme.warningColor, size: 14),
+                          const Icon(
+                            Icons.star,
+                            color:
+                                AppTheme.warningColor,
+                            size: 14,
+                          ),
+
                           const SizedBox(width: 4),
+
                           Text(
                             'Rating: $rating/10',
-                            style: AppTheme.subtitleText.copyWith(color: Colors.white, fontSize: 11),
+
+                            style: AppTheme
+                                .subtitleText
+                                .copyWith(
+                              color: Colors.white,
+                              fontSize: 11,
+                            ),
                           ),
                         ],
                       ),
@@ -88,29 +157,62 @@ class GameCard extends StatelessWidget {
               ),
             ],
           ),
-          // Bottom Row (Platforms and Detail Button)
+
+          // BOTTOM SECTION
           Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
+            padding:
+                const EdgeInsets.symmetric(
+              horizontal: 12,
+              vertical: 12,
+            ),
+
             child: Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              mainAxisAlignment:
+                  MainAxisAlignment.spaceBetween,
+
               children: [
                 Expanded(
                   child: Text(
                     platforms,
-                    style: AppTheme.subtitleText.copyWith(fontSize: 10),
+
+                    style: AppTheme.subtitleText
+                        .copyWith(
+                      fontSize: 10,
+                    ),
+
                     maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
+
+                    overflow:
+                        TextOverflow.ellipsis,
                   ),
                 ),
+
                 ElevatedButton(
                   onPressed: onDetailPressed,
-                  style: ElevatedButton.styleFrom(
-                    padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
+
+                  style:
+                      ElevatedButton.styleFrom(
+                    padding:
+                        const EdgeInsets.symmetric(
+                      horizontal: 16,
+                      vertical: 6,
+                    ),
+
                     minimumSize: Size.zero,
-                    tapTargetSize: MaterialTapTargetSize.shrinkWrap,
-                    textStyle: const TextStyle(fontSize: 10),
+
+                    tapTargetSize:
+                        MaterialTapTargetSize
+                            .shrinkWrap,
+
+                    textStyle:
+                        const TextStyle(
+                      fontSize: 10,
+                    ),
                   ),
-                  child: const Text('Detail'),
+
+                  child: const Text(
+                    'Detail',
+                  ),
                 ),
               ],
             ),
