@@ -1,13 +1,18 @@
 import 'package:flutter/material.dart';
+import 'package:cached_network_image/cached_network_image.dart';
+
 import 'package:social_game_tracker/core/theme/app_theme.dart';
 
-class GameCard extends StatelessWidget {
+class GameCard
+    extends StatelessWidget {
+
   final String title;
   final String releaseDate;
   final double rating;
   final String platforms;
   final String imageUrl;
-  final VoidCallback? onDetailPressed;
+  final VoidCallback?
+      onDetailPressed;
 
   const GameCard({
     super.key,
@@ -20,75 +25,155 @@ class GameCard extends StatelessWidget {
   });
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(
+    BuildContext context,
+  ) {
+
     return Container(
-      margin: const EdgeInsets.only(bottom: 16),
+
+      margin:
+          const EdgeInsets.only(
+        bottom: 16,
+      ),
 
       decoration: BoxDecoration(
-        color: AppTheme.cardColor,
-        borderRadius: BorderRadius.circular(12),
+        color:
+            AppTheme.cardColor,
+
+        borderRadius:
+            BorderRadius.circular(
+          12,
+        ),
       ),
 
       child: Column(
         crossAxisAlignment:
             CrossAxisAlignment.start,
+
         children: [
+
           Row(
             crossAxisAlignment:
                 CrossAxisAlignment.start,
+
             children: [
-              // IMAGE GAME
+
+              // IMAGE
               ClipRRect(
+
                 borderRadius:
                     const BorderRadius.only(
-                  topLeft: Radius.circular(12),
+                  topLeft:
+                      Radius.circular(
+                    12,
+                  ),
+
                   bottomRight:
-                      Radius.circular(12),
+                      Radius.circular(
+                    12,
+                  ),
                 ),
 
                 child: SizedBox(
+
                   width: 100,
                   height: 100,
 
-                  child: imageUrl.isNotEmpty
-                      ? Image.network(
-                          imageUrl,
-                          fit: BoxFit.cover,
+                  child:
+                      imageUrl.isNotEmpty
 
-                          errorBuilder:
-                              (
-                                context,
-                                error,
-                                stackTrace,
-                              ) {
-                            return Container(
-                              color: Colors.grey[800],
+                          ? CachedNetworkImage(
 
-                              child: const Icon(
-                                Icons
-                                    .image_not_supported,
-                                color: Colors.grey,
+                              imageUrl:
+                                  imageUrl,
+
+                              fit:
+                                  BoxFit.cover,
+
+                              memCacheWidth:
+                                  300,
+
+                              memCacheHeight:
+                                  300,
+
+                              fadeInDuration:
+                                  const Duration(
+                                milliseconds:
+                                    200,
                               ),
-                            );
-                          },
-                        )
-                      : Container(
-                          color: Colors.grey[800],
 
-                          child: const Icon(
-                            Icons.videogame_asset,
-                            color: Colors.grey,
-                            size: 40,
-                          ),
-                        ),
+                              placeholder:
+                                  (
+                                    context,
+                                    url,
+                                  ) =>
+                                      Container(
+                                color:
+                                    Colors.grey[
+                                        800],
+
+                                child:
+                                    const Center(
+                                  child:
+                                      CircularProgressIndicator(
+                                    strokeWidth:
+                                        2,
+                                  ),
+                                ),
+                              ),
+
+                              errorWidget:
+                                  (
+                                    context,
+                                    url,
+                                    error,
+                                  ) {
+                                return Container(
+                                  color:
+                                      Colors.grey[
+                                          800],
+
+                                  child:
+                                      const Icon(
+                                    Icons
+                                        .image_not_supported,
+
+                                    color:
+                                        Colors.grey,
+                                  ),
+                                );
+                              },
+                            )
+
+                          : Container(
+
+                              color:
+                                  Colors.grey[
+                                      800],
+
+                              child:
+                                  const Icon(
+                                Icons
+                                    .videogame_asset,
+
+                                color:
+                                    Colors.grey,
+
+                                size: 40,
+                              ),
+                            ),
                 ),
               ),
 
-              const SizedBox(width: 12),
+              const SizedBox(
+                width: 12,
+              ),
 
-              // DETAIL GAME
+              // DETAIL
               Expanded(
+
                 child: Padding(
+
                   padding:
                       const EdgeInsets.only(
                     top: 12,
@@ -96,14 +181,19 @@ class GameCard extends StatelessWidget {
                   ),
 
                   child: Column(
+
                     crossAxisAlignment:
-                        CrossAxisAlignment.start,
+                        CrossAxisAlignment
+                            .start,
 
                     children: [
+
                       Text(
+
                         title,
 
-                        style: AppTheme.heading2
+                        style: AppTheme
+                            .heading2
                             .copyWith(
                           fontSize: 14,
                         ),
@@ -111,12 +201,16 @@ class GameCard extends StatelessWidget {
                         maxLines: 2,
 
                         overflow:
-                            TextOverflow.ellipsis,
+                            TextOverflow
+                                .ellipsis,
                       ),
 
-                      const SizedBox(height: 4),
+                      const SizedBox(
+                        height: 4,
+                      ),
 
                       Text(
+
                         'Released: $releaseDate',
 
                         style: AppTheme
@@ -126,27 +220,40 @@ class GameCard extends StatelessWidget {
                         ),
                       ),
 
-                      const SizedBox(height: 8),
+                      const SizedBox(
+                        height: 8,
+                      ),
 
                       Row(
                         children: [
+
                           const Icon(
                             Icons.star,
+
                             color:
-                                AppTheme.warningColor,
+                                AppTheme
+                                    .warningColor,
+
                             size: 14,
                           ),
 
-                          const SizedBox(width: 4),
+                          const SizedBox(
+                            width: 4,
+                          ),
 
                           Text(
+
                             'Rating: $rating/10',
 
                             style: AppTheme
                                 .subtitleText
                                 .copyWith(
-                              color: Colors.white,
-                              fontSize: 11,
+                              color:
+                                  Colors
+                                      .white,
+
+                              fontSize:
+                                  11,
                             ),
                           ),
                         ],
@@ -158,8 +265,9 @@ class GameCard extends StatelessWidget {
             ],
           ),
 
-          // BOTTOM SECTION
+          // BOTTOM
           Padding(
+
             padding:
                 const EdgeInsets.symmetric(
               horizontal: 12,
@@ -167,15 +275,20 @@ class GameCard extends StatelessWidget {
             ),
 
             child: Row(
+
               mainAxisAlignment:
-                  MainAxisAlignment.spaceBetween,
+                  MainAxisAlignment
+                      .spaceBetween,
 
               children: [
+
                 Expanded(
                   child: Text(
+
                     platforms,
 
-                    style: AppTheme.subtitleText
+                    style: AppTheme
+                        .subtitleText
                         .copyWith(
                       fontSize: 10,
                     ),
@@ -183,22 +296,28 @@ class GameCard extends StatelessWidget {
                     maxLines: 1,
 
                     overflow:
-                        TextOverflow.ellipsis,
+                        TextOverflow
+                            .ellipsis,
                   ),
                 ),
 
                 ElevatedButton(
-                  onPressed: onDetailPressed,
+
+                  onPressed:
+                      onDetailPressed,
 
                   style:
-                      ElevatedButton.styleFrom(
+                      ElevatedButton
+                          .styleFrom(
+
                     padding:
                         const EdgeInsets.symmetric(
                       horizontal: 16,
                       vertical: 6,
                     ),
 
-                    minimumSize: Size.zero,
+                    minimumSize:
+                        Size.zero,
 
                     tapTargetSize:
                         MaterialTapTargetSize
@@ -210,7 +329,8 @@ class GameCard extends StatelessWidget {
                     ),
                   ),
 
-                  child: const Text(
+                  child:
+                      const Text(
                     'Detail',
                   ),
                 ),

@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import 'package:social_game_tracker/core/theme/app_theme.dart';
-import 'package:social_game_tracker/screens/home/home_screen.dart';
+import 'package:social_game_tracker/screens/main_screen.dart';
 
 void main() {
   runApp(
@@ -28,7 +28,7 @@ class SocialGameTrackerApp
 
       theme: AppTheme.darkTheme,
 
-      home: const HomeScreen(),
+      home: const MainScreen(),
     );
   }
 }

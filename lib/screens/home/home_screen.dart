@@ -7,12 +7,17 @@ import 'package:social_game_tracker/screens/detail/game_detail_screen.dart';
 import 'package:social_game_tracker/widgets/custom_search_bar.dart';
 import 'package:social_game_tracker/widgets/game_card.dart';
 
-class HomeScreen extends ConsumerStatefulWidget {
-  const HomeScreen({super.key});
+class HomeScreen
+    extends ConsumerStatefulWidget {
+
+  const HomeScreen({
+    super.key,
+  });
 
   @override
-  ConsumerState<HomeScreen> createState() =>
-      _HomeScreenState();
+  ConsumerState<HomeScreen>
+      createState() =>
+          _HomeScreenState();
 }
 
 class _HomeScreenState
@@ -26,24 +31,36 @@ class _HomeScreenState
       _scrollController =
       ScrollController();
 
+  bool _isFetching = false;
+
   @override
   void initState() {
     super.initState();
 
-    _scrollController.addListener(() {
+    // INFINITE SCROLL
+    _scrollController
+        .addListener(() async {
 
-      // LOAD MORE DATA WHEN SCROLL NEAR BOTTOM
-      if (_scrollController.position.pixels >=
+      if (_scrollController
+              .position
+              .pixels >=
           _scrollController
                   .position
                   .maxScrollExtent -
-              200) {
+              300) {
 
-        ref
+        if (_isFetching) return;
+
+        _isFetching = true;
+
+        await ref
             .read(
-              gameProvider.notifier,
+              gameProvider
+                  .notifier,
             )
             .fetchGames();
+
+        _isFetching = false;
       }
     });
   }
@@ -51,293 +68,287 @@ class _HomeScreenState
   @override
   void dispose() {
 
-    _searchController.dispose();
+    _searchController
+        .dispose();
 
-    _scrollController.dispose();
+    _scrollController
+        .dispose();
 
     super.dispose();
   }
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(
+    BuildContext context,
+  ) {
 
     final gameState =
-        ref.watch(gameProvider);
+        ref.watch(
+      gameProvider,
+    );
 
     return Scaffold(
+
       body: SafeArea(
-        child: Column(
-          crossAxisAlignment:
-              CrossAxisAlignment.start,
 
-          children: [
+        child: gameState.when(
 
-            // HEADER
-            Padding(
+          // LOADING
+          loading: () =>
+              const Center(
+            child:
+                CircularProgressIndicator(),
+          ),
+
+          // ERROR
+          error:
+              (
+                error,
+                stack,
+              ) =>
+                  Center(
+            child: Text(
+              error.toString(),
+
+              style:
+                  const TextStyle(
+                color: Colors.red,
+              ),
+            ),
+          ),
+
+          // SUCCESS
+          data: (games) {
+
+            // EMPTY
+            if (games.isEmpty) {
+
+              return const Center(
+                child: Text(
+                  'No Games Found',
+
+                  style: TextStyle(
+                    color: Colors.white,
+                  ),
+                ),
+              );
+            }
+
+            return ListView.builder(
+
+              controller:
+                  _scrollController,
+
               padding:
-                  const EdgeInsets.all(16.0),
-
-              child: Row(
-                children: [
-
-                  Container(
-                    padding:
-                        const EdgeInsets.all(
-                      8,
-                    ),
-
-                    decoration: BoxDecoration(
-                      color:
-                          AppTheme.primaryColor,
-
-                      borderRadius:
-                          BorderRadius.circular(
-                        8,
-                      ),
-                    ),
-
-                    child: const Icon(
-                      Icons.gamepad,
-                      color: Colors.white,
-                      size: 20,
-                    ),
-                  ),
-
-                  const SizedBox(width: 12),
-
-                  const Text(
-                    'Katalog Game',
-
-                    style: TextStyle(
-                      color: Colors.white,
-                      fontSize: 16,
-                      fontWeight:
-                          FontWeight.w600,
-                    ),
-                  ),
-                ],
+                  const EdgeInsets.all(
+                16,
               ),
-            ),
 
-            // CONTENT
-            Expanded(
-              child:
-                  SingleChildScrollView(
+              // PERFORMANCE
+              cacheExtent: 500,
 
-                // IMPORTANT
-                controller:
-                    _scrollController,
+              itemCount:
+                  games.length + 1,
 
-                padding:
-                    const EdgeInsets.symmetric(
-                  horizontal: 16.0,
-                ),
+              itemBuilder:
+                  (
+                    context,
+                    index,
+                  ) {
 
-                child: Column(
-                  crossAxisAlignment:
-                      CrossAxisAlignment.start,
+                // HEADER
+                if (index == 0) {
 
-                  children: [
+                  return Column(
+                    crossAxisAlignment:
+                        CrossAxisAlignment
+                            .start,
 
-                    const Text(
-                      'Temukan Game\nFavoritmu',
+                    children: [
 
-                      style:
-                          AppTheme.heading1,
-                    ),
+                      // TOP HEADER
+                      Row(
+                        children: [
 
-                    const SizedBox(height: 8),
+                          Container(
+                            padding:
+                                const EdgeInsets.all(
+                              8,
+                            ),
 
-                    const Text(
-                      'Search by name, genre, or platform',
+                            decoration:
+                                BoxDecoration(
+                              color:
+                                  AppTheme
+                                      .primaryColor,
 
-                      style:
-                          AppTheme.subtitleText,
-                    ),
+                              borderRadius:
+                                  BorderRadius.circular(
+                                8,
+                              ),
+                            ),
 
-                    const SizedBox(height: 24),
+                            child:
+                                const Icon(
+                              Icons.gamepad,
+                              color:
+                                  Colors.white,
+                              size: 20,
+                            ),
+                          ),
 
-                    // SEARCH BAR
-                    CustomSearchBar(
-                      controller:
-                          _searchController,
+                          const SizedBox(
+                            width: 12,
+                          ),
 
-                      onSearch: () {
+                          const Text(
+                            'Katalog Game',
 
-                        ref
-                            .read(
-                              gameProvider
-                                  .notifier,
-                            )
-                            .searchGames(
-                              _searchController
-                                  .text,
-                            );
-                      },
-                    ),
+                            style:
+                                TextStyle(
+                              color:
+                                  Colors.white,
 
-                    const SizedBox(height: 32),
+                              fontSize:
+                                  16,
 
-                    // HEADER
-                    Row(
-                      children: [
+                              fontWeight:
+                                  FontWeight
+                                      .w600,
+                            ),
+                          ),
+                        ],
+                      ),
 
-                        const Text(
-                          '🔥 Recommended Game',
+                      const SizedBox(
+                        height: 24,
+                      ),
 
-                          style:
-                              AppTheme.heading2,
-                        ),
+                      // TITLE
+                      const Text(
+                        'Temukan Game\nFavoritmu',
 
-                        const Spacer(),
+                        style:
+                            AppTheme
+                                .heading1,
+                      ),
 
-                        TextButton(
-                          onPressed: () {},
+                      const SizedBox(
+                        height: 8,
+                      ),
 
-                          style:
-                              TextButton.styleFrom(
-                            foregroundColor:
+                      // SUBTITLE
+                      const Text(
+                        'Search by name, genre, or platform',
+
+                        style:
+                            AppTheme
+                                .subtitleText,
+                      ),
+
+                      const SizedBox(
+                        height: 24,
+                      ),
+
+                      // SEARCH BAR
+                      CustomSearchBar(
+
+                        controller:
+                            _searchController,
+
+                        onSearch: () {
+
+                          ref
+                              .read(
+                                gameProvider
+                                    .notifier,
+                              )
+                              .searchGames(
+                                _searchController
+                                    .text,
+                              );
+                        },
+                      ),
+
+                      const SizedBox(
+                        height: 32,
+                      ),
+
+                      // SECTION HEADER
+                      Row(
+                        children: [
+
+                          const Text(
+                            '🔥 Recommended Game',
+
+                            style:
                                 AppTheme
-                                    .textSecondaryColor,
+                                    .heading2,
+                          ),
 
-                            textStyle:
-                                const TextStyle(
-                              fontSize: 12,
+                          const Spacer(),
+
+                          TextButton(
+                            onPressed:
+                                () {},
+
+                            child:
+                                const Text(
+                              'See All',
                             ),
                           ),
-
-                          child:
-                              const Text(
-                            'See All',
-                          ),
-                        ),
-                      ],
-                    ),
-
-                    const SizedBox(height: 16),
-
-                    // GAME LIST
-                    gameState.when(
-
-                      loading: () =>
-                          const Center(
-                        child:
-                            CircularProgressIndicator(),
+                        ],
                       ),
 
-                      error:
-                          (
-                            error,
-                            stack,
-                          ) =>
-                              Center(
-                        child: Text(
-                          error.toString(),
+                      const SizedBox(
+                        height: 16,
+                      ),
+                    ],
+                  );
+                }
 
-                          style:
-                              const TextStyle(
-                            color:
-                                Colors.red,
-                          ),
+                // GAME ITEM
+                final game =
+                    games[index - 1];
+
+                return GameCard(
+
+                  title:
+                      game.name,
+
+                  releaseDate:
+                      game.releasedDate,
+
+                  rating:
+                      game.rating,
+
+                  platforms: game
+                      .platforms
+                      .join(', '),
+
+                  imageUrl:
+                      game.backgroundImage,
+
+                  onDetailPressed: () {
+
+                    Navigator.push(
+                      context,
+
+                      MaterialPageRoute(
+                        builder:
+                            (
+                              context,
+                            ) =>
+                                GameDetailScreen(
+                          game: game,
                         ),
                       ),
-
-                      data: (games) {
-
-                        if (games.isEmpty) {
-
-                          return const Center(
-                            child: Padding(
-                              padding:
-                                  EdgeInsets.all(
-                                24,
-                              ),
-
-                              child: Text(
-                                'No Games Found',
-
-                                style:
-                                    TextStyle(
-                                  color:
-                                      Colors
-                                          .white,
-                                ),
-                              ),
-                            ),
-                          );
-                        }
-
-                        return ListView.builder(
-
-                          shrinkWrap: true,
-
-                          physics:
-                              const NeverScrollableScrollPhysics(),
-
-                          itemCount:
-                              games.length,
-
-                          itemBuilder:
-                              (
-                                context,
-                                index,
-                              ) {
-
-                            final game =
-                                games[index];
-
-                            return GameCard(
-
-                              title:
-                                  game.name,
-
-                              releaseDate:
-                                  game
-                                      .releasedDate,
-
-                              rating:
-                                  game.rating,
-
-                              platforms: game
-                                  .platforms
-                                  .join(
-                                    ', ',
-                                  ),
-
-                              imageUrl:
-                                  game
-                                      .backgroundImage,
-
-                              onDetailPressed:
-                                  () {
-
-                                Navigator.push(
-                                  context,
-
-                                  MaterialPageRoute(
-                                    builder:
-                                        (
-                                          context,
-                                        ) =>
-                                            GameDetailScreen(
-                                      game:
-                                          game,
-                                    ),
-                                  ),
-                                );
-                              },
-                            );
-                          },
-                        );
-                      },
-                    ),
-
-                    const SizedBox(height: 24),
-                  ],
-                ),
-              ),
-            ),
-          ],
+                    );
+                  },
+                );
+              },
+            );
+          },
         ),
       ),
     );

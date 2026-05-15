@@ -4,37 +4,47 @@ import '../models/game_model.dart';
 import '../services/rawg_service.dart';
 
 final rawgServiceProvider =
-    Provider((ref) => RawgService());
+    Provider(
+  (ref) => RawgService(),
+);
 
 class GameNotifier
     extends StateNotifier<
-      AsyncValue<List<GameModel>>
-    > {
+        AsyncValue<List<GameModel>>> {
+
   final RawgService service;
+
+  GameNotifier(this.service)
+      : super(const AsyncLoading()) {
+
+    fetchGames();
+  }
 
   // PAGINATION
   int _currentPage = 1;
 
+  // PREVENT MULTIPLE REQUEST
   bool isLoadingMore = false;
 
+  // ALL GAME DATA
   final List<GameModel> _allGames = [];
 
-  GameNotifier(this.service)
-      : super(const AsyncLoading()) {
-    fetchGames();
-  }
-
-  // GET GAMES WITH PAGINATION
+  // FETCH GAMES
   Future<void> fetchGames() async {
+
     try {
-      // Prevent duplicate request
+
+      // PREVENT DUPLICATE API CALL
       if (isLoadingMore) return;
 
       isLoadingMore = true;
 
-      // Loading hanya saat awal
-      if (_currentPage == 1) {
-        state = const AsyncLoading();
+      // LOADING ONLY FIRST TIME
+      if (_currentPage == 1 &&
+          _allGames.isEmpty) {
+
+        state =
+            const AsyncLoading();
       }
 
       final games =
@@ -42,45 +52,88 @@ class GameNotifier
         page: _currentPage,
       );
 
-      _allGames.addAll(games);
+      // PREVENT DUPLICATE DATA
+      final newGames =
+          games.where((game) {
 
-      state = AsyncData(_allGames);
+        return !_allGames.any(
+          (existingGame) =>
+              existingGame.id ==
+              game.id,
+        );
+      }).toList();
 
+      // ADD NEW DATA
+      _allGames.addAll(newGames);
+
+      // IMPORTANT
+      // USE NEW LIST INSTANCE
+      state = AsyncData(
+        List.from(_allGames),
+      );
+
+      // NEXT PAGE
       _currentPage++;
-    } catch (e, stackTrace) {
+
+    } catch (
+      e,
+      stackTrace
+    ) {
+
       state = AsyncError(
         e,
         stackTrace,
       );
+
     } finally {
+
       isLoadingMore = false;
     }
   }
 
-  // SEARCH GAMES
+  // SEARCH GAME
   Future<void> searchGames(
     String keyword,
   ) async {
-    try {
-      state = const AsyncLoading();
 
-      // Reset pagination saat search
+    try {
+
+      state =
+          const AsyncLoading();
+
+      // RESET
       _currentPage = 1;
 
       _allGames.clear();
 
-      final games = keyword.isEmpty
-          ? await service.getGames(
-              page: 1,
-            )
-          : await service.searchGames(
-              keyword,
-            );
+      final games =
+          keyword.isEmpty
+
+              ? await service
+                  .getGames(
+                  page: 1,
+                )
+
+              : await service
+                  .searchGames(
+                  keyword,
+                );
 
       _allGames.addAll(games);
 
-      state = AsyncData(_allGames);
-    } catch (e, stackTrace) {
+      // IMPORTANT
+      state = AsyncData(
+        List.from(_allGames),
+      );
+
+      // NEXT PAGE
+      _currentPage = 2;
+
+    } catch (
+      e,
+      stackTrace
+    ) {
+
       state = AsyncError(
         e,
         stackTrace,
@@ -91,10 +144,12 @@ class GameNotifier
 
 final gameProvider =
     StateNotifierProvider<
-      GameNotifier,
-      AsyncValue<List<GameModel>>
-    >(
+  GameNotifier,
+  AsyncValue<List<GameModel>>
+>(
   (ref) => GameNotifier(
-    ref.read(rawgServiceProvider),
+    ref.read(
+      rawgServiceProvider,
+    ),
   ),
 );
