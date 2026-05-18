@@ -123,50 +123,6 @@ class _RegisterScreenState extends State<RegisterScreen> {
                 
                 const SizedBox(height: 32),
                 
-                // Social Sign Up
-                Row(
-                  children: [
-                    Expanded(child: Divider(color: AppTheme.dividerColor)),
-                    const Padding(
-                      padding: EdgeInsets.symmetric(horizontal: 16),
-                      child: Text('Or continue with', style: AppTheme.subtitleText),
-                    ),
-                    Expanded(child: Divider(color: AppTheme.dividerColor)),
-                  ],
-                ),
-                
-                const SizedBox(height: 24),
-                Row(
-                  children: [
-                    Expanded(
-                      child: OutlinedButton(
-                        onPressed: () {},
-                        style: OutlinedButton.styleFrom(
-                          padding: const EdgeInsets.symmetric(vertical: 14),
-                          side: const BorderSide(color: AppTheme.dividerColor),
-                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-                          backgroundColor: AppTheme.cardColor,
-                        ),
-                        child: const Text('Google', style: TextStyle(color: Colors.white)),
-                      ),
-                    ),
-                    const SizedBox(width: 16),
-                    Expanded(
-                      child: OutlinedButton(
-                        onPressed: () {},
-                        style: OutlinedButton.styleFrom(
-                          padding: const EdgeInsets.symmetric(vertical: 14),
-                          side: const BorderSide(color: AppTheme.dividerColor),
-                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-                          backgroundColor: AppTheme.cardColor,
-                        ),
-                        child: const Text('Facebook', style: TextStyle(color: Colors.white)),
-                      ),
-                    ),
-                  ],
-                ),
-                
-                const SizedBox(height: 32),
                 
                 // Login link
                 Row(
