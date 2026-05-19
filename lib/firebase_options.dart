@@ -17,29 +17,17 @@ import 'package:flutter/foundation.dart'
 class DefaultFirebaseOptions {
   static FirebaseOptions get currentPlatform {
     if (kIsWeb) {
-      throw UnsupportedError(
-        'DefaultFirebaseOptions have not been configured for web - '
-        'you can reconfigure this by running the FlutterFire CLI again.',
-      );
+      return web;
     }
     switch (defaultTargetPlatform) {
       case TargetPlatform.android:
         return android;
       case TargetPlatform.iOS:
-        throw UnsupportedError(
-          'DefaultFirebaseOptions have not been configured for ios - '
-          'you can reconfigure this by running the FlutterFire CLI again.',
-        );
+        return ios;
       case TargetPlatform.macOS:
-        throw UnsupportedError(
-          'DefaultFirebaseOptions have not been configured for macos - '
-          'you can reconfigure this by running the FlutterFire CLI again.',
-        );
+        return macos;
       case TargetPlatform.windows:
-        throw UnsupportedError(
-          'DefaultFirebaseOptions have not been configured for windows - '
-          'you can reconfigure this by running the FlutterFire CLI again.',
-        );
+        return windows;
       case TargetPlatform.linux:
         throw UnsupportedError(
           'DefaultFirebaseOptions have not been configured for linux - '
@@ -57,6 +45,42 @@ class DefaultFirebaseOptions {
     appId: '1:443896343343:android:7422ef2b86df3703dd0fda',
     messagingSenderId: '443896343343',
     projectId: 'social-game-tracker',
+    storageBucket: 'social-game-tracker.firebasestorage.app',
+  );
+
+  static const FirebaseOptions web = FirebaseOptions(
+    apiKey: 'AIzaSyD0SWLz_kl13txTN-wwjQ1q6clog2Qx-5s',
+    appId: '1:443896343343:web:21c7690ed01a950fdd0fda',
+    messagingSenderId: '443896343343',
+    projectId: 'social-game-tracker',
+    authDomain: 'social-game-tracker.firebaseapp.com',
+    storageBucket: 'social-game-tracker.firebasestorage.app',
+  );
+
+  static const FirebaseOptions macos = FirebaseOptions(
+    apiKey: 'AIzaSyClGtgkPTenFdNrz6eTQr7Wf_8L1KhVHEE',
+    appId: '1:443896343343:ios:8e58fc738f16d5e9dd0fda',
+    messagingSenderId: '443896343343',
+    projectId: 'social-game-tracker',
+    storageBucket: 'social-game-tracker.firebasestorage.app',
+    iosBundleId: 'com.example.socialGameTracker',
+  );
+
+  static const FirebaseOptions ios = FirebaseOptions(
+    apiKey: 'AIzaSyClGtgkPTenFdNrz6eTQr7Wf_8L1KhVHEE',
+    appId: '1:443896343343:ios:8e58fc738f16d5e9dd0fda',
+    messagingSenderId: '443896343343',
+    projectId: 'social-game-tracker',
+    storageBucket: 'social-game-tracker.firebasestorage.app',
+    iosBundleId: 'com.example.socialGameTracker',
+  );
+
+  static const FirebaseOptions windows = FirebaseOptions(
+    apiKey: 'AIzaSyD0SWLz_kl13txTN-wwjQ1q6clog2Qx-5s',
+    appId: '1:443896343343:web:f6c542cc11726356dd0fda',
+    messagingSenderId: '443896343343',
+    projectId: 'social-game-tracker',
+    authDomain: 'social-game-tracker.firebaseapp.com',
     storageBucket: 'social-game-tracker.firebasestorage.app',
   );
 
