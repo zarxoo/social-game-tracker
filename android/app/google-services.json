@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "443896343343",
+    "project_id": "social-game-tracker",
+    "storage_bucket": "social-game-tracker.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:443896343343:android:7422ef2b86df3703dd0fda",
+        "android_client_info": {
+          "package_name": "com.example.social_game_tracker"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDJ5Pr_xey9gLwNcMiAS9swPoRSzt4fG-E"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

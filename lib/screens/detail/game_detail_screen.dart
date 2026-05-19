@@ -1,6 +1,11 @@
 import 'package:flutter/material.dart';
+import 'package:firebase_auth/firebase_auth.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
+
 import 'package:social_game_tracker/core/theme/app_theme.dart';
 import 'package:social_game_tracker/models/game_model.dart';
+
+import '../../services/firestore_service.dart';
 
 class GameDetailScreen extends StatefulWidget {
   final GameModel game;
@@ -19,24 +24,106 @@ class _GameDetailScreenState
     extends State<GameDetailScreen> {
   bool _isWishlisted = false;
 
-  void _toggleWishlist() {
-    setState(() {
-      _isWishlisted = !_isWishlisted;
-    });
+  @override
+  void initState() {
+    super.initState();
 
-    ScaffoldMessenger.of(context)
-        .showSnackBar(
-      SnackBar(
-        content: Text(
-          _isWishlisted
-              ? 'Added to Wishlist'
-              : 'Removed from Wishlist',
-        ),
+    _checkWishlistStatus();
+  }
 
-        duration:
-            const Duration(seconds: 1),
-      ),
+  Future<void> _checkWishlistStatus() async {
+    final uid =
+        FirebaseAuth.instance.currentUser!.uid;
+
+    final snapshot =
+        await FirebaseFirestore.instance
+            .collection('users')
+            .doc(uid)
+            .get();
+
+    if (!snapshot.exists) return;
+
+    final data =
+        snapshot.data() as Map<String, dynamic>;
+
+    final wishlist =
+        data['wishlist'] ?? [];
+
+    final exists = wishlist.any(
+      (game) =>
+          game['id'] == widget.game.id,
     );
+
+    setState(() {
+      _isWishlisted = exists;
+    });
+  }
+
+  Future<void> _toggleWishlist() async {
+    final uid =
+        FirebaseAuth.instance.currentUser!.uid;
+
+    try {
+      if (!_isWishlisted) {
+        await FirestoreService()
+            .addWishlist(
+          uid: uid,
+
+          gameId: widget.game.id,
+
+          gameName: widget.game.name,
+
+          gameImage:
+              widget.game.backgroundImage,
+        );
+
+        setState(() {
+          _isWishlisted = true;
+        });
+
+        if (context.mounted) {
+          ScaffoldMessenger.of(context)
+              .showSnackBar(
+            const SnackBar(
+              content: Text(
+                'Added to Wishlist',
+              ),
+            ),
+          );
+        }
+      } else {
+        await FirestoreService()
+            .removeWishlist(
+          uid: uid,
+
+          gameId: widget.game.id,
+
+          gameName: widget.game.name,
+
+          gameImage:
+              widget.game.backgroundImage,
+        );
+
+        setState(() {
+          _isWishlisted = false;
+        });
+
+        if (context.mounted) {
+          ScaffoldMessenger.of(context)
+              .showSnackBar(
+            const SnackBar(
+              content: Text(
+                'Removed from Wishlist',
+              ),
+            ),
+          );
+        }
+      }
+    } catch (e) {
+      debugPrint(
+        'ERROR WISHLIST: $e',
+      );
+    }
   }
 
   @override
@@ -86,7 +173,6 @@ class _GameDetailScreenState
                       ),
                     ),
 
-                  // Gradient Overlay
                   Container(
                     decoration: BoxDecoration(
                       gradient:
@@ -222,7 +308,7 @@ class _GameDetailScreenState
                     children: widget
                         .game.platforms
                         .map(
-                          (platform) {
+                      (platform) {
                         return Chip(
                           label: Text(
                             platform,
@@ -255,7 +341,7 @@ class _GameDetailScreenState
                   const SizedBox(height: 8),
 
                   Text(
-                    'This is a placeholder description for ${widget.game.name}. In a real app, this would be fetched from the RAWG API. It would contain details about the gameplay, story, and other interesting facts about the game.\n\nGet ready to experience an epic journey in this critically acclaimed title.',
+                    'This is a placeholder description for ${widget.game.name}. In a real app, this would be fetched from the RAWG API.',
 
                     style: AppTheme
                         .bodyText
