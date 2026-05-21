@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-
+import 'package:social_game_tracker/core/config/api_config.dart';
 import 'package:social_game_tracker/core/theme/app_theme.dart';
 import 'package:social_game_tracker/providers/game_provider.dart';
 import 'package:social_game_tracker/screens/detail/game_detail_screen.dart';
@@ -311,41 +311,25 @@ class _HomeScreenState
                 final game =
                     games[index - 1];
 
-                return GameCard(
-
-                  title:
-                      game.name,
-
-                  releaseDate:
-                      game.releasedDate,
-
-                  rating:
-                      game.rating,
-
-                  platforms: game
-                      .platforms
-                      .join(', '),
-
-                  imageUrl:
-                      game.backgroundImage,
-
-                  onDetailPressed: () {
-
-                    Navigator.push(
-                      context,
-
-                      MaterialPageRoute(
-                        builder:
-                            (
-                              context,
-                            ) =>
-                                GameDetailScreen(
-                          game: game,
-                        ),
-                      ),
-                    );
-                  },
-                );
+               return GameCard(
+  gameId: game.id,
+  title: game.name,
+  releaseDate: game.releasedDate,
+  rating: game.rating,
+  platforms: game.platforms.join(', '),
+  imageUrl: game.backgroundImage,
+  rawgApiKey: ApiConfig.rawgApiKey,
+  onDetailPressed: () {
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) => GameDetailScreen(
+          game: game,
+        ),
+      ),
+    );
+  },
+);
               },
             );
           },

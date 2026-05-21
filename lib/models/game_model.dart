@@ -20,15 +20,21 @@ class GameModel {
       id: json['id'] ?? 0,
       name: json['name'] ?? '',
       backgroundImage: json['background_image'] ?? '',
-      rating: (json['rating'] ?? 0).toDouble(),
+      rating: (json['rating'] as num?)?.toDouble() ?? 0.0,
       releasedDate: json['released'] ?? '-',
       platforms: (json['platforms'] as List?)
               ?.map(
                 (platform) =>
-                    platform['platform']['name'].toString(),
+                    platform['platform']?['name']?.toString() ?? '',
               )
+              .where((platform) => platform.isNotEmpty)
               .toList() ??
           [],
     );
+  }
+
+  String get platformText {
+    if (platforms.isEmpty) return 'Unknown Platform';
+    return platforms.join(', ');
   }
 }
