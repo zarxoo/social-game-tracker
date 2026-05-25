@@ -29,6 +29,12 @@ class FirestoreService {
         .get();
   }
 
+  Stream<QuerySnapshot> getAllUsers() {
+    return _firestore
+        .collection('users')
+        .snapshots();
+  }
+
   Future<void> addWishlist({
     required String uid,
     required int gameId,
