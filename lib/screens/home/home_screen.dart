@@ -279,7 +279,7 @@ class _HomeScreenState
                         children: [
 
                           const Text(
-                            '🔥 Recommended Game',
+                            '🔥 Explore Game',
 
                             style:
                                 AppTheme
