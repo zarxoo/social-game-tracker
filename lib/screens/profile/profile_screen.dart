@@ -5,7 +5,7 @@ import 'package:flutter/material.dart';
 import '../../services/auth_service.dart';
 import '../../services/firestore_service.dart';
 
-import '../auth/login_screen.dart';
+import '../main_screen.dart';
 
 class ProfileScreen extends StatelessWidget {
   const ProfileScreen({
@@ -26,14 +26,16 @@ class ProfileScreen extends StatelessWidget {
         actions: [
           IconButton(
             onPressed: () async {
+              // LOGOUT
               await AuthService().logout();
 
+              // KEMBALI KE MAIN SCREEN
               if (context.mounted) {
                 Navigator.pushAndRemoveUntil(
                   context,
                   MaterialPageRoute(
                     builder: (_) =>
-                        const LoginScreen(),
+                        const MainScreen(),
                   ),
                   (route) => false,
                 );
@@ -54,6 +56,7 @@ class ProfileScreen extends StatelessWidget {
             .snapshots(),
 
         builder: (context, snapshot) {
+          // LOADING
           if (snapshot.connectionState ==
               ConnectionState.waiting) {
             return const Center(
@@ -62,6 +65,7 @@ class ProfileScreen extends StatelessWidget {
             );
           }
 
+          // USER TIDAK DITEMUKAN
           if (!snapshot.hasData ||
               !snapshot.data!.exists) {
             return const Center(
@@ -86,6 +90,7 @@ class ProfileScreen extends StatelessWidget {
                   CrossAxisAlignment.start,
 
               children: [
+                // FOTO PROFILE
                 Center(
                   child: CircleAvatar(
                     radius: 40,
@@ -104,6 +109,7 @@ class ProfileScreen extends StatelessWidget {
 
                 const SizedBox(height: 16),
 
+                // USERNAME
                 Center(
                   child: Text(
                     data['username'],
@@ -119,6 +125,7 @@ class ProfileScreen extends StatelessWidget {
 
                 const SizedBox(height: 8),
 
+                // EMAIL
                 Center(
                   child: Text(
                     data['email'],
@@ -127,6 +134,7 @@ class ProfileScreen extends StatelessWidget {
 
                 const SizedBox(height: 32),
 
+                // JUDUL WISHLIST
                 const Text(
                   'Wishlist',
 
@@ -139,6 +147,7 @@ class ProfileScreen extends StatelessWidget {
 
                 const SizedBox(height: 16),
 
+                // LIST WISHLIST
                 Expanded(
                   child: wishlist.isEmpty
                       ? const Center(
