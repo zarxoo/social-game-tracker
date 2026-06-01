@@ -103,4 +103,22 @@ class RawgService {
       );
     }
   }
+
+  // GET GAME DETAILS
+  Future<GameModel> getGameDetails(int id) async {
+    try {
+      final response = await _dio.get(
+        '${ApiConstants.baseUrl}/games/$id',
+        queryParameters: {
+          'key': ApiConstants.apiKey,
+        },
+      );
+
+      return GameModel.fromJson(response.data);
+    } catch (e) {
+      throw Exception(
+        'Failed to get game details',
+      );
+    }
+  }
 }

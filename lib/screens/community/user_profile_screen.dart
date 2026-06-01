@@ -1,7 +1,7 @@
-import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
-
 import '../../core/theme/app_theme.dart';
+import '../../models/game_model.dart';
+import '../detail/game_detail_screen.dart';
 
 class UserProfileScreen extends StatelessWidget {
   final Map<String, dynamic> userData;
@@ -11,469 +11,195 @@ class UserProfileScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final wishlist = userData['wishlist'] ?? [];
+    final played = userData['played'] ?? [];
+    final favorites = userData['favorites'] ?? [];
     final username = (userData['username'] ?? 'Player').toString();
     final email = (userData['email'] ?? '').toString();
 
-    return Scaffold(
-      backgroundColor: AppTheme.backgroundColor,
-      appBar: AppBar(
-        backgroundColor: AppTheme.backgroundColor,
-        elevation: 0,
-        centerTitle: true,
-        title: const Text('Community Profile'),
-      ),
-      body: Padding(
-        padding: const EdgeInsets.fromLTRB(16, 12, 16, 16),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
+    return DefaultTabController(
+      length: 3,
+      child: Scaffold(
+        appBar: AppBar(
+          title: const Text('Community Profile'),
+          elevation: 0,
+          backgroundColor: Colors.transparent,
+        ),
+        extendBodyBehindAppBar: true,
+        body: Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
-            _ProfileHeader(
-              username: username,
-              email: email,
-              wishlistCount: wishlist.length,
-            ),
-
-            const SizedBox(height: 20),
-
-            Row(
-              children: [
-                const Icon(
-                  Icons.favorite_rounded,
-                  color: AppTheme.warningColor,
-                  size: 18,
+            // HEADER PROFILE
+            Container(
+              padding: const EdgeInsets.only(top: 100, bottom: 32, left: 16, right: 16),
+              decoration: BoxDecoration(
+                gradient: LinearGradient(
+                  colors: [
+                    AppTheme.primaryColor.withOpacity(0.8),
+                    AppTheme.backgroundColor,
+                  ],
+                  begin: Alignment.topCenter,
+                  end: Alignment.bottomCenter,
                 ),
-                const SizedBox(width: 8),
-                Text(
-                  'Wishlist Games',
-                  style: AppTheme.heading2.copyWith(fontSize: 18),
-                ),
-                const Spacer(),
-                Container(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 10,
-                    vertical: 6,
-                  ),
-                  decoration: BoxDecoration(
-                    color: AppTheme.primaryColor.withValues(alpha: 0.16),
-                    borderRadius: BorderRadius.circular(999),
-                    border: Border.all(
-                      color: AppTheme.primaryColor.withValues(alpha: 0.28),
-                    ),
-                  ),
-                  child: Text(
-                    '${wishlist.length} saved',
-                    style: AppTheme.subtitleText.copyWith(
-                      color: Colors.white.withValues(alpha: 0.78),
-                      fontSize: 10,
-                      fontWeight: FontWeight.w700,
-                    ),
-                  ),
-                ),
-              ],
-            ),
-
-            const SizedBox(height: 14),
-
-            Expanded(
-              child: wishlist.isEmpty
-                  ? Center(
-                      child: Container(
-                        width: double.infinity,
-                        padding: const EdgeInsets.all(24),
-                        decoration: BoxDecoration(
-                          color: AppTheme.cardColor,
-                          borderRadius: BorderRadius.circular(24),
-                          border: Border.all(
-                            color: Colors.white.withValues(alpha: 0.06),
-                          ),
-                        ),
-                        child: Column(
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            Container(
-                              width: 54,
-                              height: 54,
-                              decoration: BoxDecoration(
-                                color: AppTheme.primaryColor.withValues(
-                                  alpha: 0.16,
-                                ),
-                                shape: BoxShape.circle,
-                              ),
-                              child: const Icon(
-                                Icons.bookmark_border_rounded,
-                                color: AppTheme.primaryColor,
-                                size: 28,
-                              ),
-                            ),
-                            const SizedBox(height: 16),
-                            Text(
-                              'Wishlist masih kosong',
-                              style: AppTheme.heading2.copyWith(fontSize: 16),
-                            ),
-                            const SizedBox(height: 8),
-                            Text(
-                              'Belum ada game yang disimpan di daftar wishlist.',
-                              textAlign: TextAlign.center,
-                              style: AppTheme.subtitleText.copyWith(
-                                color: Colors.white.withValues(alpha: 0.62),
-                              ),
-                            ),
-                          ],
-                        ),
+              ),
+              child: Column(
+                children: [
+                  CircleAvatar(
+                    radius: 50,
+                    backgroundColor: AppTheme.cardColor,
+                    child: Text(
+                      username.isNotEmpty ? username[0].toUpperCase() : 'P',
+                      style: const TextStyle(
+                        fontSize: 40,
+                        fontWeight: FontWeight.bold,
+                        color: Colors.white,
                       ),
-                    )
-                  : ListView.builder(
-                      cacheExtent: 250,
-                      addAutomaticKeepAlives: false,
-                      addRepaintBoundaries: true,
-                      itemCount: wishlist.length,
-                      itemBuilder: (context, index) {
-                        final game = wishlist[index];
-
-                        return RepaintBoundary(
-                          child: _WishlistGameCard(game: game),
-                        );
-                      },
                     ),
+                  ),
+                  const SizedBox(height: 16),
+                  Text(
+                    username,
+                    style: const TextStyle(
+                      fontSize: 24,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                  const SizedBox(height: 8),
+                  Text(
+                    email.isNotEmpty ? email : 'No email provided',
+                    style: const TextStyle(
+                      color: Colors.grey,
+                      fontSize: 16,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+
+            // TAB BAR
+            const TabBar(
+              tabs: [
+                Tab(text: 'Wishlist'),
+                Tab(text: 'Played'),
+                Tab(text: 'Favorites'),
+              ],
+              indicatorColor: AppTheme.primaryColor,
+              labelColor: AppTheme.primaryColor,
+              unselectedLabelColor: Colors.grey,
+            ),
+
+            // TAB BAR VIEW (GRID GAME)
+            Expanded(
+              child: TabBarView(
+                children: [
+                  _buildGameGrid(wishlist, context),
+                  _buildGameGrid(played, context),
+                  _buildGameGrid(favorites, context),
+                ],
+              ),
             ),
           ],
         ),
       ),
     );
   }
-}
 
-class _ProfileHeader extends StatelessWidget {
-  final String username;
-  final String email;
-  final int wishlistCount;
-
-  const _ProfileHeader({
-    required this.username,
-    required this.email,
-    required this.wishlistCount,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      width: double.infinity,
-      padding: const EdgeInsets.all(18),
-      decoration: BoxDecoration(
-        color: AppTheme.cardColor,
-        borderRadius: BorderRadius.circular(26),
-        border: Border.all(color: Colors.white.withValues(alpha: 0.08)),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withValues(alpha: 0.24),
-            blurRadius: 20,
-            offset: const Offset(0, 10),
-          ),
-        ],
-      ),
-      child: Row(
-        children: [
-          Container(
-            decoration: BoxDecoration(
-              shape: BoxShape.circle,
-              gradient: LinearGradient(
-                colors: [AppTheme.primaryColor, Colors.deepPurpleAccent],
-              ),
+  Widget _buildGameGrid(List games, BuildContext context) {
+    if (games.isEmpty) {
+      return Center(
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Icon(Icons.videogame_asset_off, size: 64, color: Colors.grey[800]),
+            const SizedBox(height: 16),
+            const Text(
+              'Belum ada game.',
+              style: TextStyle(color: Colors.grey, fontSize: 16),
             ),
-            padding: const EdgeInsets.all(2.5),
-            child: CircleAvatar(
-              radius: 34,
-              backgroundColor: AppTheme.backgroundColor,
-              child: Text(
-                username.isNotEmpty ? username[0].toUpperCase() : 'P',
-                style: const TextStyle(
-                  color: Colors.white,
-                  fontSize: 26,
-                  fontWeight: FontWeight.bold,
-                ),
-              ),
-            ),
-          ),
-          const SizedBox(width: 16),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(username, style: AppTheme.heading2.copyWith(fontSize: 20)),
-                const SizedBox(height: 5),
-                Text(
-                  email.isNotEmpty ? email : 'No email provided',
-                  style: AppTheme.subtitleText.copyWith(
-                    color: Colors.white.withValues(alpha: 0.62),
-                  ),
-                ),
-                const SizedBox(height: 12),
-                Row(
-                  children: [
-                    _MiniStatChip(
-                      icon: Icons.bookmark_rounded,
-                      label: '$wishlistCount saved',
-                    ),
-                    const SizedBox(width: 8),
-                    _MiniStatChip(
-                      icon: Icons.verified_rounded,
-                      label: 'Community',
-                    ),
-                  ],
-                ),
-              ],
-            ),
-          ),
-        ],
+          ],
+        ),
+      );
+    }
+
+    return GridView.builder(
+      padding: const EdgeInsets.all(16),
+      gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+        crossAxisCount: 2,
+        crossAxisSpacing: 16,
+        mainAxisSpacing: 16,
+        childAspectRatio: 0.7, // Aspek rasio untuk box art game
       ),
-    );
-  }
-}
-
-class _MiniStatChip extends StatelessWidget {
-  final IconData icon;
-  final String label;
-
-  const _MiniStatChip({required this.icon, required this.label});
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 9, vertical: 6),
-      decoration: BoxDecoration(
-        color: Colors.white.withValues(alpha: 0.06),
-        borderRadius: BorderRadius.circular(999),
-        border: Border.all(color: Colors.white.withValues(alpha: 0.08)),
-      ),
-      child: Row(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Icon(icon, size: 12, color: AppTheme.warningColor),
-          const SizedBox(width: 5),
-          Text(
-            label,
-            style: AppTheme.subtitleText.copyWith(
-              color: Colors.white.withValues(alpha: 0.78),
-              fontSize: 10,
-              fontWeight: FontWeight.w700,
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-}
-
-class _WishlistGameCard extends StatelessWidget {
-  final Map<dynamic, dynamic> game;
-
-  const _WishlistGameCard({required this.game});
-
-  @override
-  Widget build(BuildContext context) {
-    final String gameName = (game['name'] ?? 'Unknown Game').toString();
-    final String imageUrl = (game['image'] ?? '').toString();
-
-    return Container(
-      margin: const EdgeInsets.only(bottom: 16),
-      decoration: BoxDecoration(
-        color: AppTheme.cardColor,
-        borderRadius: BorderRadius.circular(24),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withValues(alpha: 0.26),
-            blurRadius: 20,
-            offset: const Offset(0, 12),
-          ),
-        ],
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          ClipRRect(
-            borderRadius: const BorderRadius.vertical(top: Radius.circular(24)),
+      itemCount: games.length,
+      itemBuilder: (context, index) {
+        final game = games[index];
+        return GestureDetector(
+          onTap: () => _navigateToDetail(context, game),
+          child: ClipRRect(
+            borderRadius: BorderRadius.circular(16),
             child: Stack(
+              fit: StackFit.expand,
               children: [
-                AspectRatio(
-                  aspectRatio: 16 / 9,
-                  child: imageUrl.isEmpty
-                      ? Container(
-                          color: Colors.grey.shade900,
-                          child: const Center(
-                            child: Icon(
-                              Icons.videogame_asset_rounded,
-                              color: Colors.white38,
-                              size: 42,
-                            ),
-                          ),
-                        )
-                      : CachedNetworkImage(
-                          imageUrl: imageUrl,
-                          fit: BoxFit.cover,
-                          memCacheWidth: 700,
-                          memCacheHeight: 400,
-                          fadeInDuration: const Duration(milliseconds: 250),
-                          placeholder: (context, url) => Container(
-                            color: Colors.grey.shade900,
-                            child: const Center(
-                              child: SizedBox(
-                                width: 28,
-                                height: 28,
-                                child: CircularProgressIndicator(
-                                  strokeWidth: 2,
-                                ),
-                              ),
-                            ),
-                          ),
-                          errorWidget: (context, url, error) => Container(
-                            color: Colors.grey.shade900,
-                            child: const Center(
-                              child: Icon(
-                                Icons.broken_image_rounded,
-                                color: Colors.white38,
-                                size: 40,
-                              ),
-                            ),
-                          ),
-                        ),
-                ),
-                Positioned.fill(
-                  child: IgnorePointer(
-                    child: DecoratedBox(
-                      decoration: BoxDecoration(
-                        gradient: LinearGradient(
-                          begin: Alignment.topCenter,
-                          end: Alignment.bottomCenter,
-                          colors: [
-                            Colors.black.withValues(alpha: 0.04),
-                            Colors.black.withValues(alpha: 0.72),
-                          ],
-                        ),
-                      ),
-                    ),
+                // GAMBAR GAME
+                Image.network(
+                  game['image'],
+                  fit: BoxFit.cover,
+                  errorBuilder: (context, error, stackTrace) => const Icon(
+                    Icons.videogame_asset,
+                    size: 50,
+                    color: Colors.grey,
                   ),
                 ),
-                Positioned(
-                  top: 12,
-                  right: 12,
-                  child: _MiniStatChip(
-                    icon: Icons.favorite_rounded,
-                    label: 'Wishlist',
-                  ),
-                ),
-                Positioned(
-                  left: 12,
-                  bottom: 12,
-                  child: Container(
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 10,
-                      vertical: 6,
-                    ),
-                    decoration: BoxDecoration(
-                      color: Colors.black.withValues(alpha: 0.52),
-                      borderRadius: BorderRadius.circular(999),
-                      border: Border.all(
-                        color: Colors.white.withValues(alpha: 0.08),
-                      ),
-                    ),
-                    child: const Row(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        Icon(
-                          Icons.collections_rounded,
-                          color: Colors.white,
-                          size: 12,
-                        ),
-                        SizedBox(width: 5),
-                        Text(
-                          'Game spotlight',
-                          style: TextStyle(
-                            color: Colors.white,
-                            fontSize: 10,
-                            fontWeight: FontWeight.w700,
-                          ),
-                        ),
+                // GRADIENT GELAP DI BAWAH AGAR TEKS TERBACA
+                Container(
+                  decoration: BoxDecoration(
+                    gradient: LinearGradient(
+                      begin: Alignment.topCenter,
+                      end: Alignment.bottomCenter,
+                      colors: [
+                        Colors.transparent,
+                        Colors.black.withOpacity(0.9),
                       ],
                     ),
                   ),
                 ),
-              ],
-            ),
-          ),
-          Padding(
-            padding: const EdgeInsets.fromLTRB(14, 14, 14, 16),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  gameName,
-                  style: AppTheme.heading2.copyWith(
-                    fontSize: 16,
-                    fontWeight: FontWeight.w800,
-                    height: 1.25,
-                  ),
-                  maxLines: 2,
-                  overflow: TextOverflow.ellipsis,
-                ),
-                const SizedBox(height: 8),
-                Row(
-                  children: [
-                    Icon(
-                      Icons.event_available_rounded,
-                      size: 14,
-                      color: Colors.white.withValues(alpha: 0.55),
+                // JUDUL GAME
+                Positioned(
+                  bottom: 12,
+                  left: 12,
+                  right: 12,
+                  child: Text(
+                    game['name'],
+                    style: const TextStyle(
+                      fontWeight: FontWeight.bold,
+                      fontSize: 14,
+                      color: Colors.white,
                     ),
-                    const SizedBox(width: 6),
-                    Expanded(
-                      child: Text(
-                        'Disimpan ke wishlist komunitas',
-                        style: AppTheme.subtitleText.copyWith(
-                          fontSize: 11,
-                          color: Colors.white.withValues(alpha: 0.58),
-                        ),
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
-                      ),
-                    ),
-                  ],
-                ),
-                const SizedBox(height: 12),
-                Container(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 10,
-                    vertical: 8,
-                  ),
-                  decoration: BoxDecoration(
-                    color: AppTheme.primaryColor.withValues(alpha: 0.12),
-                    borderRadius: BorderRadius.circular(999),
-                    border: Border.all(
-                      color: AppTheme.primaryColor.withValues(alpha: 0.26),
-                    ),
-                  ),
-                  child: Row(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      const Icon(
-                        Icons.favorite_rounded,
-                        size: 14,
-                        color: AppTheme.primaryColor,
-                      ),
-                      const SizedBox(width: 6),
-                      Text(
-                        'Community wishlist pick',
-                        style: AppTheme.subtitleText.copyWith(
-                          fontSize: 10,
-                          color: Colors.white.withValues(alpha: 0.78),
-                          fontWeight: FontWeight.w700,
-                        ),
-                      ),
-                    ],
+                    maxLines: 2,
+                    overflow: TextOverflow.ellipsis,
                   ),
                 ),
               ],
             ),
           ),
-        ],
+        );
+      },
+    );
+  }
+
+  void _navigateToDetail(BuildContext context, Map<String, dynamic> gameData) {
+    // Bangun GameModel dari data Firestore (Instan)
+    final dummyGame = GameModel(
+      id: gameData['id'],
+      name: gameData['name'],
+      backgroundImage: gameData['image'],
+      rating: (gameData['rating'] ?? 0).toDouble(),
+      releasedDate: gameData['releasedDate'] ?? '-',
+      platforms: List<String>.from(gameData['platforms'] ?? []),
+    );
+
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (_) => GameDetailScreen(game: dummyGame),
       ),
     );
   }

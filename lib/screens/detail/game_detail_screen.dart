@@ -6,6 +6,7 @@ import 'package:social_game_tracker/core/theme/app_theme.dart';
 import 'package:social_game_tracker/models/game_model.dart';
 
 import '../../services/firestore_service.dart';
+import '../auth/login_screen.dart';
 
 class GameDetailScreen extends StatefulWidget {
   final GameModel game;
@@ -16,113 +17,212 @@ class GameDetailScreen extends StatefulWidget {
   });
 
   @override
-  State<GameDetailScreen> createState() =>
-      _GameDetailScreenState();
+  State<GameDetailScreen> createState() => _GameDetailScreenState();
 }
 
-class _GameDetailScreenState
-    extends State<GameDetailScreen> {
+class _GameDetailScreenState extends State<GameDetailScreen> {
   bool _isWishlisted = false;
+  bool _isPlayed = false;
+  bool _isFavorite = false;
 
   @override
   void initState() {
     super.initState();
-
-    _checkWishlistStatus();
+    _checkGameStatus();
   }
 
-  Future<void> _checkWishlistStatus() async {
-    final uid =
-        FirebaseAuth.instance.currentUser!.uid;
+  Future<void> _checkGameStatus() async {
+    final user = FirebaseAuth.instance.currentUser;
+    if (user == null) {
+      setState(() {
+        _isWishlisted = false;
+        _isPlayed = false;
+        _isFavorite = false;
+      });
+      return;
+    }
+    
+    final uid = user.uid;
 
-    final snapshot =
-        await FirebaseFirestore.instance
-            .collection('users')
-            .doc(uid)
-            .get();
-
+    final snapshot = await FirebaseFirestore.instance.collection('users').doc(uid).get();
     if (!snapshot.exists) return;
 
-    final data =
-        snapshot.data() as Map<String, dynamic>;
+    final data = snapshot.data() as Map<String, dynamic>;
 
-    final wishlist =
-        data['wishlist'] ?? [];
+    final wishlist = data['wishlist'] ?? [];
+    final played = data['played'] ?? [];
+    final favorites = data['favorites'] ?? [];
 
-    final exists = wishlist.any(
-      (game) =>
-          game['id'] == widget.game.id,
-    );
+    final wishlistExists = wishlist.any((game) => game['id'] == widget.game.id);
+    final playedExists = played.any((game) => game['id'] == widget.game.id);
+    final favoriteExists = favorites.any((game) => game['id'] == widget.game.id);
 
     setState(() {
-      _isWishlisted = exists;
+      _isWishlisted = wishlistExists;
+      _isPlayed = playedExists;
+      _isFavorite = favoriteExists;
     });
   }
 
   Future<void> _toggleWishlist() async {
-    final uid =
-        FirebaseAuth.instance.currentUser!.uid;
+    final user = FirebaseAuth.instance.currentUser;
+    if (user == null) {
+      if (context.mounted) {
+        Navigator.push(context, MaterialPageRoute(builder: (_) => const LoginScreen()));
+      }
+      return;
+    }
+    
+    final uid = user.uid;
 
     try {
       if (!_isWishlisted) {
-        await FirestoreService()
-            .addWishlist(
+        await FirestoreService().addWishlist(
           uid: uid,
-
           gameId: widget.game.id,
-
           gameName: widget.game.name,
-
-          gameImage:
-              widget.game.backgroundImage,
+          gameImage: widget.game.backgroundImage,
+          gameRating: widget.game.rating,
+          gameReleasedDate: widget.game.releasedDate,
+          gamePlatforms: widget.game.platforms,
         );
 
-        setState(() {
-          _isWishlisted = true;
-        });
+        setState(() { _isWishlisted = true; });
 
         if (context.mounted) {
-          ScaffoldMessenger.of(context)
-              .showSnackBar(
-            const SnackBar(
-              content: Text(
-                'Added to Wishlist',
-              ),
-            ),
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text('Added to Wishlist')),
           );
         }
       } else {
-        await FirestoreService()
-            .removeWishlist(
+        await FirestoreService().removeWishlist(
           uid: uid,
-
           gameId: widget.game.id,
-
           gameName: widget.game.name,
-
-          gameImage:
-              widget.game.backgroundImage,
+          gameImage: widget.game.backgroundImage,
+          gameRating: widget.game.rating,
+          gameReleasedDate: widget.game.releasedDate,
+          gamePlatforms: widget.game.platforms,
         );
 
-        setState(() {
-          _isWishlisted = false;
-        });
+        setState(() { _isWishlisted = false; });
 
         if (context.mounted) {
-          ScaffoldMessenger.of(context)
-              .showSnackBar(
-            const SnackBar(
-              content: Text(
-                'Removed from Wishlist',
-              ),
-            ),
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text('Removed from Wishlist')),
           );
         }
       }
     } catch (e) {
-      debugPrint(
-        'ERROR WISHLIST: $e',
-      );
+      debugPrint('ERROR WISHLIST: $e');
+    }
+  }
+
+  Future<void> _togglePlayed() async {
+    final user = FirebaseAuth.instance.currentUser;
+    if (user == null) {
+      if (context.mounted) {
+        Navigator.push(context, MaterialPageRoute(builder: (_) => const LoginScreen()));
+      }
+      return;
+    }
+    
+    final uid = user.uid;
+
+    try {
+      if (!_isPlayed) {
+        await FirestoreService().addPlayed(
+          uid: uid,
+          gameId: widget.game.id,
+          gameName: widget.game.name,
+          gameImage: widget.game.backgroundImage,
+          gameRating: widget.game.rating,
+          gameReleasedDate: widget.game.releasedDate,
+          gamePlatforms: widget.game.platforms,
+        );
+
+        setState(() { _isPlayed = true; });
+
+        if (context.mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text('Added to Played')),
+          );
+        }
+      } else {
+        await FirestoreService().removePlayed(
+          uid: uid,
+          gameId: widget.game.id,
+          gameName: widget.game.name,
+          gameImage: widget.game.backgroundImage,
+          gameRating: widget.game.rating,
+          gameReleasedDate: widget.game.releasedDate,
+          gamePlatforms: widget.game.platforms,
+        );
+
+        setState(() { _isPlayed = false; });
+
+        if (context.mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text('Removed from Played')),
+          );
+        }
+      }
+    } catch (e) {
+      debugPrint('ERROR PLAYED: $e');
+    }
+  }
+
+  Future<void> _toggleFavorite() async {
+    final user = FirebaseAuth.instance.currentUser;
+    if (user == null) {
+      if (context.mounted) {
+        Navigator.push(context, MaterialPageRoute(builder: (_) => const LoginScreen()));
+      }
+      return;
+    }
+    
+    final uid = user.uid;
+
+    try {
+      if (!_isFavorite) {
+        await FirestoreService().addFavorite(
+          uid: uid,
+          gameId: widget.game.id,
+          gameName: widget.game.name,
+          gameImage: widget.game.backgroundImage,
+          gameRating: widget.game.rating,
+          gameReleasedDate: widget.game.releasedDate,
+          gamePlatforms: widget.game.platforms,
+        );
+
+        setState(() { _isFavorite = true; });
+
+        if (context.mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text('Added to Favorite')),
+          );
+        }
+      } else {
+        await FirestoreService().removeFavorite(
+          uid: uid,
+          gameId: widget.game.id,
+          gameName: widget.game.name,
+          gameImage: widget.game.backgroundImage,
+          gameRating: widget.game.rating,
+          gameReleasedDate: widget.game.releasedDate,
+          gamePlatforms: widget.game.platforms,
+        );
+
+        setState(() { _isFavorite = false; });
+
+        if (context.mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text('Removed from Favorite')),
+          );
+        }
+      }
+    } catch (e) {
+      debugPrint('ERROR FAVORITE: $e');
     }
   }
 
@@ -134,31 +234,16 @@ class _GameDetailScreenState
           SliverAppBar(
             expandedHeight: 300,
             pinned: true,
-
             flexibleSpace: FlexibleSpaceBar(
               background: Stack(
                 fit: StackFit.expand,
-
                 children: [
-                  Container(
-                    color: Colors.grey[800],
-                  ),
-
-                  if (widget.game.backgroundImage
-                      .isNotEmpty)
+                  Container(color: Colors.grey[800]),
+                  if (widget.game.backgroundImage.isNotEmpty)
                     Image.network(
-                      widget.game
-                          .backgroundImage,
-
+                      widget.game.backgroundImage,
                       fit: BoxFit.cover,
-
-                      errorBuilder:
-                          (
-                            context,
-                            error,
-                            stackTrace,
-                          ) =>
-                              const Icon(
+                      errorBuilder: (context, error, stackTrace) => const Icon(
                         Icons.videogame_asset,
                         size: 80,
                         color: Colors.grey,
@@ -172,25 +257,15 @@ class _GameDetailScreenState
                         color: Colors.grey,
                       ),
                     ),
-
                   Container(
                     decoration: BoxDecoration(
-                      gradient:
-                          LinearGradient(
-                        begin:
-                            Alignment.topCenter,
-                        end:
-                            Alignment.bottomCenter,
-
+                      gradient: LinearGradient(
+                        begin: Alignment.topCenter,
+                        end: Alignment.bottomCenter,
                         colors: [
                           Colors.transparent,
-
-                          AppTheme
-                              .backgroundColor
-                              .withAlpha(200),
-
-                          AppTheme
-                              .backgroundColor,
+                          AppTheme.backgroundColor.withOpacity(0.8),
+                          AppTheme.backgroundColor,
                         ],
                       ),
                     ),
@@ -198,199 +273,139 @@ class _GameDetailScreenState
                 ],
               ),
             ),
-
             actions: [
               IconButton(
                 icon: Icon(
-                  _isWishlisted
-                      ? Icons.bookmark
-                      : Icons.bookmark_border,
-
-                  color: _isWishlisted
-                      ? AppTheme
-                          .primaryColor
-                      : Colors.white,
+                  _isWishlisted ? Icons.bookmark : Icons.bookmark_border,
+                  color: _isWishlisted ? AppTheme.primaryColor : Colors.white,
                 ),
-
-                onPressed:
-                    _toggleWishlist,
+                onPressed: _toggleWishlist,
               ),
             ],
           ),
-
           SliverToBoxAdapter(
             child: Padding(
-              padding:
-                  const EdgeInsets.all(
-                20.0,
-              ),
-
+              padding: const EdgeInsets.all(20.0),
               child: Column(
-                crossAxisAlignment:
-                    CrossAxisAlignment.start,
-
+                crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
                     widget.game.name,
-
-                    style: AppTheme
-                        .heading1
-                        .copyWith(
-                      fontSize: 24,
-                    ),
+                    style: AppTheme.heading1.copyWith(fontSize: 24),
                   ),
-
                   const SizedBox(height: 12),
-
                   Row(
                     children: [
                       const Icon(
                         Icons.star,
-                        color:
-                            AppTheme
-                                .warningColor,
+                        color: AppTheme.warningColor,
                         size: 18,
                       ),
-
                       const SizedBox(width: 4),
-
                       Text(
                         '${widget.game.rating}/10',
-
-                        style:
-                            const TextStyle(
-                          fontWeight:
-                              FontWeight.bold,
-
+                        style: const TextStyle(
+                          fontWeight: FontWeight.bold,
                           fontSize: 14,
-
-                          color:
-                              Colors.white,
+                          color: Colors.white,
                         ),
                       ),
-
                       const SizedBox(width: 16),
-
                       const Icon(
                         Icons.calendar_today,
-                        color: AppTheme
-                            .textSecondaryColor,
+                        color: AppTheme.textSecondaryColor,
                         size: 16,
                       ),
-
                       const SizedBox(width: 4),
-
                       Text(
-                        widget
-                            .game
-                            .releasedDate,
-
-                        style: AppTheme
-                            .subtitleText,
+                        widget.game.releasedDate,
+                        style: AppTheme.subtitleText,
                       ),
                     ],
                   ),
-
                   const SizedBox(height: 24),
-
                   const Text(
                     'Platforms',
-                    style:
-                        AppTheme.heading2,
+                    style: AppTheme.heading2,
                   ),
-
                   const SizedBox(height: 8),
-
                   Wrap(
                     spacing: 8,
                     runSpacing: 8,
-
-                    children: widget
-                        .game.platforms
-                        .map(
-                      (platform) {
-                        return Chip(
-                          label: Text(
-                            platform,
-
-                            style:
-                                const TextStyle(
-                              fontSize: 12,
-                            ),
-                          ),
-
-                          backgroundColor:
-                              AppTheme
-                                  .cardColor,
-
-                          side:
-                              BorderSide.none,
-                        );
-                      },
-                    ).toList(),
+                    children: widget.game.platforms.map((platform) {
+                      return Chip(
+                        label: Text(
+                          platform,
+                          style: const TextStyle(fontSize: 12),
+                        ),
+                        backgroundColor: AppTheme.cardColor,
+                        side: BorderSide.none,
+                      );
+                    }).toList(),
                   ),
-
                   const SizedBox(height: 24),
-
                   const Text(
                     'Description',
-                    style:
-                        AppTheme.heading2,
+                    style: AppTheme.heading2,
                   ),
-
                   const SizedBox(height: 8),
-
                   Text(
                     'This is a placeholder description for ${widget.game.name}. In a real app, this would be fetched from the RAWG API.',
-
-                    style: AppTheme
-                        .bodyText
-                        .copyWith(
-                      height: 1.5,
-                    ),
+                    style: AppTheme.bodyText.copyWith(height: 1.5),
                   ),
-
                   const SizedBox(height: 40),
-
                   SizedBox(
                     width: double.infinity,
-
-                    child:
-                        ElevatedButton.icon(
-                      onPressed:
-                          _toggleWishlist,
-
+                    child: ElevatedButton.icon(
+                      onPressed: _toggleWishlist,
                       icon: Icon(
-                        _isWishlisted
-                            ? Icons
-                                .bookmark_remove
-                            : Icons
-                                .bookmark_add,
+                        _isWishlisted ? Icons.bookmark_remove : Icons.bookmark_add,
                       ),
-
                       label: Text(
-                        _isWishlisted
-                            ? 'Remove from Wishlist'
-                            : 'Add to Wishlist',
+                        _isWishlisted ? 'Remove from Wishlist' : 'Add to Wishlist',
                       ),
-
-                      style:
-                          ElevatedButton.styleFrom(
-                        padding:
-                            const EdgeInsets.symmetric(
-                          vertical: 16,
-                        ),
-
-                        backgroundColor:
-                            _isWishlisted
-                                ? AppTheme
-                                    .cardColor
-                                : AppTheme
-                                    .primaryColor,
+                      style: ElevatedButton.styleFrom(
+                        padding: const EdgeInsets.symmetric(vertical: 16),
+                        backgroundColor: _isWishlisted ? AppTheme.cardColor : AppTheme.primaryColor,
                       ),
                     ),
                   ),
-
+                  const SizedBox(height: 16),
+                  Row(
+                    children: [
+                      Expanded(
+                        child: ElevatedButton.icon(
+                          onPressed: _togglePlayed,
+                          icon: Icon(
+                            _isPlayed ? Icons.videogame_asset_off : Icons.videogame_asset,
+                          ),
+                          label: Text(
+                            _isPlayed ? 'Played' : 'Add to Played',
+                          ),
+                          style: ElevatedButton.styleFrom(
+                            padding: const EdgeInsets.symmetric(vertical: 16),
+                            backgroundColor: _isPlayed ? AppTheme.cardColor : Colors.teal,
+                          ),
+                        ),
+                      ),
+                      const SizedBox(width: 16),
+                      Expanded(
+                        child: ElevatedButton.icon(
+                          onPressed: _toggleFavorite,
+                          icon: Icon(
+                            _isFavorite ? Icons.favorite : Icons.favorite_border,
+                          ),
+                          label: Text(
+                            _isFavorite ? 'Favorited' : 'Favorite',
+                          ),
+                          style: ElevatedButton.styleFrom(
+                            padding: const EdgeInsets.symmetric(vertical: 16),
+                            backgroundColor: _isFavorite ? AppTheme.cardColor : Colors.pink,
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
                   const SizedBox(height: 40),
                 ],
               ),
