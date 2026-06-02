@@ -194,6 +194,7 @@ class UserProfileScreen extends StatelessWidget {
       rating: (gameData['rating'] ?? 0).toDouble(),
       releasedDate: gameData['releasedDate'] ?? '-',
       platforms: List<String>.from(gameData['platforms'] ?? []),
+      description: '',
     );
 
     Navigator.push(

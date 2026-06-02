@@ -6,15 +6,13 @@ import 'package:social_game_tracker/core/theme/app_theme.dart';
 import 'package:social_game_tracker/models/game_model.dart';
 
 import '../../services/firestore_service.dart';
+import '../../services/rawg_service.dart';
 import '../auth/login_screen.dart';
 
 class GameDetailScreen extends StatefulWidget {
   final GameModel game;
 
-  const GameDetailScreen({
-    super.key,
-    required this.game,
-  });
+  const GameDetailScreen({super.key, required this.game});
 
   @override
   State<GameDetailScreen> createState() => _GameDetailScreenState();
@@ -25,10 +23,26 @@ class _GameDetailScreenState extends State<GameDetailScreen> {
   bool _isPlayed = false;
   bool _isFavorite = false;
 
+  GameModel? gameDetail;
+  bool isLoadingDescription = true;
+
   @override
   void initState() {
     super.initState();
     _checkGameStatus();
+    _loadGameDetails();
+  }
+
+  String getEnglishDescription(String text) {
+    if (text.contains('Español')) {
+      return text.split('Español').first.trim();
+    }
+
+    if (text.contains('Spanish')) {
+      return text.split('Spanish').first.trim();
+    }
+
+    return text;
   }
 
   Future<void> _checkGameStatus() async {
@@ -41,10 +55,13 @@ class _GameDetailScreenState extends State<GameDetailScreen> {
       });
       return;
     }
-    
+
     final uid = user.uid;
 
-    final snapshot = await FirebaseFirestore.instance.collection('users').doc(uid).get();
+    final snapshot = await FirebaseFirestore.instance
+        .collection('users')
+        .doc(uid)
+        .get();
     if (!snapshot.exists) return;
 
     final data = snapshot.data() as Map<String, dynamic>;
@@ -55,7 +72,9 @@ class _GameDetailScreenState extends State<GameDetailScreen> {
 
     final wishlistExists = wishlist.any((game) => game['id'] == widget.game.id);
     final playedExists = played.any((game) => game['id'] == widget.game.id);
-    final favoriteExists = favorites.any((game) => game['id'] == widget.game.id);
+    final favoriteExists = favorites.any(
+      (game) => game['id'] == widget.game.id,
+    );
 
     setState(() {
       _isWishlisted = wishlistExists;
@@ -64,15 +83,33 @@ class _GameDetailScreenState extends State<GameDetailScreen> {
     });
   }
 
+  Future<void> _loadGameDetails() async {
+    try {
+      final detail = await RawgService().getGameDetails(widget.game.id);
+
+      setState(() {
+        gameDetail = detail;
+        isLoadingDescription = false;
+      });
+    } catch (e) {
+      setState(() {
+        isLoadingDescription = false;
+      });
+    }
+  }
+
   Future<void> _toggleWishlist() async {
     final user = FirebaseAuth.instance.currentUser;
     if (user == null) {
       if (context.mounted) {
-        Navigator.push(context, MaterialPageRoute(builder: (_) => const LoginScreen()));
+        Navigator.push(
+          context,
+          MaterialPageRoute(builder: (_) => const LoginScreen()),
+        );
       }
       return;
     }
-    
+
     final uid = user.uid;
 
     try {
@@ -87,12 +124,14 @@ class _GameDetailScreenState extends State<GameDetailScreen> {
           gamePlatforms: widget.game.platforms,
         );
 
-        setState(() { _isWishlisted = true; });
+        setState(() {
+          _isWishlisted = true;
+        });
 
         if (context.mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(content: Text('Added to Wishlist')),
-          );
+          ScaffoldMessenger.of(
+            context,
+          ).showSnackBar(const SnackBar(content: Text('Added to Wishlist')));
         }
       } else {
         await FirestoreService().removeWishlist(
@@ -105,7 +144,9 @@ class _GameDetailScreenState extends State<GameDetailScreen> {
           gamePlatforms: widget.game.platforms,
         );
 
-        setState(() { _isWishlisted = false; });
+        setState(() {
+          _isWishlisted = false;
+        });
 
         if (context.mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
@@ -122,11 +163,14 @@ class _GameDetailScreenState extends State<GameDetailScreen> {
     final user = FirebaseAuth.instance.currentUser;
     if (user == null) {
       if (context.mounted) {
-        Navigator.push(context, MaterialPageRoute(builder: (_) => const LoginScreen()));
+        Navigator.push(
+          context,
+          MaterialPageRoute(builder: (_) => const LoginScreen()),
+        );
       }
       return;
     }
-    
+
     final uid = user.uid;
 
     try {
@@ -141,12 +185,14 @@ class _GameDetailScreenState extends State<GameDetailScreen> {
           gamePlatforms: widget.game.platforms,
         );
 
-        setState(() { _isPlayed = true; });
+        setState(() {
+          _isPlayed = true;
+        });
 
         if (context.mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(content: Text('Added to Played')),
-          );
+          ScaffoldMessenger.of(
+            context,
+          ).showSnackBar(const SnackBar(content: Text('Added to Played')));
         }
       } else {
         await FirestoreService().removePlayed(
@@ -159,12 +205,14 @@ class _GameDetailScreenState extends State<GameDetailScreen> {
           gamePlatforms: widget.game.platforms,
         );
 
-        setState(() { _isPlayed = false; });
+        setState(() {
+          _isPlayed = false;
+        });
 
         if (context.mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(content: Text('Removed from Played')),
-          );
+          ScaffoldMessenger.of(
+            context,
+          ).showSnackBar(const SnackBar(content: Text('Removed from Played')));
         }
       }
     } catch (e) {
@@ -176,11 +224,14 @@ class _GameDetailScreenState extends State<GameDetailScreen> {
     final user = FirebaseAuth.instance.currentUser;
     if (user == null) {
       if (context.mounted) {
-        Navigator.push(context, MaterialPageRoute(builder: (_) => const LoginScreen()));
+        Navigator.push(
+          context,
+          MaterialPageRoute(builder: (_) => const LoginScreen()),
+        );
       }
       return;
     }
-    
+
     final uid = user.uid;
 
     try {
@@ -195,12 +246,14 @@ class _GameDetailScreenState extends State<GameDetailScreen> {
           gamePlatforms: widget.game.platforms,
         );
 
-        setState(() { _isFavorite = true; });
+        setState(() {
+          _isFavorite = true;
+        });
 
         if (context.mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(content: Text('Added to Favorite')),
-          );
+          ScaffoldMessenger.of(
+            context,
+          ).showSnackBar(const SnackBar(content: Text('Added to Favorite')));
         }
       } else {
         await FirestoreService().removeFavorite(
@@ -213,7 +266,9 @@ class _GameDetailScreenState extends State<GameDetailScreen> {
           gamePlatforms: widget.game.platforms,
         );
 
-        setState(() { _isFavorite = false; });
+        setState(() {
+          _isFavorite = false;
+        });
 
         if (context.mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
@@ -303,7 +358,7 @@ class _GameDetailScreenState extends State<GameDetailScreen> {
                       ),
                       const SizedBox(width: 4),
                       Text(
-                        '${widget.game.rating}/10',
+                        '${widget.game.rating.toStringAsFixed(1)}/5',
                         style: const TextStyle(
                           fontWeight: FontWeight.bold,
                           fontSize: 14,
@@ -324,10 +379,7 @@ class _GameDetailScreenState extends State<GameDetailScreen> {
                     ],
                   ),
                   const SizedBox(height: 24),
-                  const Text(
-                    'Platforms',
-                    style: AppTheme.heading2,
-                  ),
+                  const Text('Platforms', style: AppTheme.heading2),
                   const SizedBox(height: 8),
                   Wrap(
                     spacing: 8,
@@ -344,29 +396,36 @@ class _GameDetailScreenState extends State<GameDetailScreen> {
                     }).toList(),
                   ),
                   const SizedBox(height: 24),
-                  const Text(
-                    'Description',
-                    style: AppTheme.heading2,
-                  ),
+                  const Text('Description', style: AppTheme.heading2),
                   const SizedBox(height: 8),
-                  Text(
-                    'This is a placeholder description for ${widget.game.name}. In a real app, this would be fetched from the RAWG API.',
-                    style: AppTheme.bodyText.copyWith(height: 1.5),
-                  ),
+                  isLoadingDescription
+                      ? const Center(child: CircularProgressIndicator())
+                      : Text(
+                          gameDetail?.description.isNotEmpty == true
+                              ? getEnglishDescription(gameDetail!.description)
+                              : 'No description available.',
+                          style: AppTheme.bodyText.copyWith(height: 1.5),
+                        ),
                   const SizedBox(height: 40),
                   SizedBox(
                     width: double.infinity,
                     child: ElevatedButton.icon(
                       onPressed: _toggleWishlist,
                       icon: Icon(
-                        _isWishlisted ? Icons.bookmark_remove : Icons.bookmark_add,
+                        _isWishlisted
+                            ? Icons.bookmark_remove
+                            : Icons.bookmark_add,
                       ),
                       label: Text(
-                        _isWishlisted ? 'Remove from Wishlist' : 'Add to Wishlist',
+                        _isWishlisted
+                            ? 'Remove from Wishlist'
+                            : 'Add to Wishlist',
                       ),
                       style: ElevatedButton.styleFrom(
                         padding: const EdgeInsets.symmetric(vertical: 16),
-                        backgroundColor: _isWishlisted ? AppTheme.cardColor : AppTheme.primaryColor,
+                        backgroundColor: _isWishlisted
+                            ? AppTheme.cardColor
+                            : AppTheme.primaryColor,
                       ),
                     ),
                   ),
@@ -377,14 +436,16 @@ class _GameDetailScreenState extends State<GameDetailScreen> {
                         child: ElevatedButton.icon(
                           onPressed: _togglePlayed,
                           icon: Icon(
-                            _isPlayed ? Icons.videogame_asset_off : Icons.videogame_asset,
+                            _isPlayed
+                                ? Icons.videogame_asset_off
+                                : Icons.videogame_asset,
                           ),
-                          label: Text(
-                            _isPlayed ? 'Played' : 'Add to Played',
-                          ),
+                          label: Text(_isPlayed ? 'Played' : 'Add to Played'),
                           style: ElevatedButton.styleFrom(
                             padding: const EdgeInsets.symmetric(vertical: 16),
-                            backgroundColor: _isPlayed ? AppTheme.cardColor : Colors.teal,
+                            backgroundColor: _isPlayed
+                                ? AppTheme.cardColor
+                                : Colors.teal,
                           ),
                         ),
                       ),
@@ -393,14 +454,16 @@ class _GameDetailScreenState extends State<GameDetailScreen> {
                         child: ElevatedButton.icon(
                           onPressed: _toggleFavorite,
                           icon: Icon(
-                            _isFavorite ? Icons.favorite : Icons.favorite_border,
+                            _isFavorite
+                                ? Icons.favorite
+                                : Icons.favorite_border,
                           ),
-                          label: Text(
-                            _isFavorite ? 'Favorited' : 'Favorite',
-                          ),
+                          label: Text(_isFavorite ? 'Favorited' : 'Favorite'),
                           style: ElevatedButton.styleFrom(
                             padding: const EdgeInsets.symmetric(vertical: 16),
-                            backgroundColor: _isFavorite ? AppTheme.cardColor : Colors.pink,
+                            backgroundColor: _isFavorite
+                                ? AppTheme.cardColor
+                                : Colors.pink,
                           ),
                         ),
                       ),
