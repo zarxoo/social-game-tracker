@@ -399,7 +399,7 @@ class _GameDetailScreenState extends State<GameDetailScreen> {
                   const Text('Description', style: AppTheme.heading2),
                   const SizedBox(height: 8),
                   isLoadingDescription
-                      ? const Center(child: CircularProgressIndicator())
+                      ? const SizedBox(height: 24) // Empty space instead of loading spinner
                       : Text(
                           gameDetail?.description.isNotEmpty == true
                               ? getEnglishDescription(gameDetail!.description)
