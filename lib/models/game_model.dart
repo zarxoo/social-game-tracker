@@ -5,6 +5,7 @@ class GameModel {
   final double rating;
   final String releasedDate;
   final List<String> platforms;
+  final List<String> genres;
   final String description;
 
   GameModel({
@@ -14,6 +15,7 @@ class GameModel {
     required this.rating,
     required this.releasedDate,
     required this.platforms,
+    required this.genres,
     required this.description,
   });
 
@@ -28,6 +30,13 @@ class GameModel {
               ?.map(
                 (platform) =>
                     platform['platform']['name'].toString(),
+              )
+              .toList() ??
+          [],
+      genres: (json['genres'] as List?)
+              ?.map(
+                (genre) =>
+                    genre['name'].toString(),
               )
               .toList() ??
           [],

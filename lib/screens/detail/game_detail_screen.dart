@@ -122,6 +122,7 @@ class _GameDetailScreenState extends State<GameDetailScreen> {
           gameRating: widget.game.rating,
           gameReleasedDate: widget.game.releasedDate,
           gamePlatforms: widget.game.platforms,
+          gameGenres: widget.game.genres,
         );
 
         setState(() {
@@ -183,6 +184,7 @@ class _GameDetailScreenState extends State<GameDetailScreen> {
           gameRating: widget.game.rating,
           gameReleasedDate: widget.game.releasedDate,
           gamePlatforms: widget.game.platforms,
+          gameGenres: widget.game.genres,
         );
 
         setState(() {
@@ -244,6 +246,7 @@ class _GameDetailScreenState extends State<GameDetailScreen> {
           gameRating: widget.game.rating,
           gameReleasedDate: widget.game.releasedDate,
           gamePlatforms: widget.game.platforms,
+          gameGenres: widget.game.genres,
         );
 
         setState(() {

@@ -33,6 +33,7 @@ class FirestoreService {
     double rating,
     String releasedDate,
     List<String> platforms,
+    List<String> genres,
   ) {
     return {
       'id': id,
@@ -41,6 +42,7 @@ class FirestoreService {
       'rating': rating,
       'releasedDate': releasedDate,
       'platforms': platforms,
+      'genres': genres,
     };
   }
 
@@ -92,11 +94,12 @@ class FirestoreService {
     required double gameRating,
     required String gameReleasedDate,
     required List<String> gamePlatforms,
+    required List<String> gameGenres,
   }) async {
     await _addToList(
       uid: uid,
       listName: 'wishlist',
-      gameMap: _gameToMap(gameId, gameName, gameImage, gameRating, gameReleasedDate, gamePlatforms),
+      gameMap: _gameToMap(gameId, gameName, gameImage, gameRating, gameReleasedDate, gamePlatforms, gameGenres),
     );
   }
 
@@ -121,11 +124,12 @@ class FirestoreService {
     required double gameRating,
     required String gameReleasedDate,
     required List<String> gamePlatforms,
+    required List<String> gameGenres,
   }) async {
     await _addToList(
       uid: uid,
       listName: 'played',
-      gameMap: _gameToMap(gameId, gameName, gameImage, gameRating, gameReleasedDate, gamePlatforms),
+      gameMap: _gameToMap(gameId, gameName, gameImage, gameRating, gameReleasedDate, gamePlatforms, gameGenres),
     );
   }
 
@@ -150,11 +154,12 @@ class FirestoreService {
     required double gameRating,
     required String gameReleasedDate,
     required List<String> gamePlatforms,
+    required List<String> gameGenres,
   }) async {
     await _addToList(
       uid: uid,
       listName: 'favorites',
-      gameMap: _gameToMap(gameId, gameName, gameImage, gameRating, gameReleasedDate, gamePlatforms),
+      gameMap: _gameToMap(gameId, gameName, gameImage, gameRating, gameReleasedDate, gamePlatforms, gameGenres),
     );
   }
 

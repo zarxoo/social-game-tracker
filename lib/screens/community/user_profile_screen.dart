@@ -17,7 +17,7 @@ class UserProfileScreen extends StatelessWidget {
     final email = (userData['email'] ?? '').toString();
 
     return DefaultTabController(
-      length: 3,
+      length: 4,
       child: Scaffold(
         appBar: AppBar(
           title: const Text('Community Profile'),
@@ -78,6 +78,7 @@ class UserProfileScreen extends StatelessWidget {
             // TAB BAR
             const TabBar(
               tabs: [
+                Tab(text: 'Stats'),
                 Tab(text: 'Wishlist'),
                 Tab(text: 'Played'),
                 Tab(text: 'Favorites'),
@@ -91,6 +92,7 @@ class UserProfileScreen extends StatelessWidget {
             Expanded(
               child: TabBarView(
                 children: [
+                  _buildStatsTab(played),
                   _buildGameGrid(wishlist, context, 'wishlist'),
                   _buildGameGrid(played, context, 'played'),
                   _buildGameGrid(favorites, context, 'favorites'),
@@ -99,6 +101,162 @@ class UserProfileScreen extends StatelessWidget {
             ),
           ],
         ),
+      ),
+    );
+  }
+
+  Widget _buildStatsTab(List played) {
+    if (played.isEmpty) {
+      return Center(
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Icon(Icons.analytics_outlined, size: 64, color: Colors.grey[800]),
+            const SizedBox(height: 16),
+            const Text(
+              'Belum ada statistik.',
+              style: TextStyle(color: Colors.grey, fontSize: 16),
+            ),
+          ],
+        ),
+      );
+    }
+
+    int totalGames = played.length;
+    double totalRating = 0;
+    Map<String, int> yearCounts = {};
+    Map<String, int> genreCounts = {};
+    
+    for (var game in played) {
+      totalRating += (game['rating'] ?? 0).toDouble();
+      
+      String releaseDate = game['releasedDate'] ?? '';
+      if (releaseDate.length >= 4) {
+        String year = releaseDate.substring(0, 4);
+        yearCounts[year] = (yearCounts[year] ?? 0) + 1;
+      }
+      
+      List<String> genres = List<String>.from(game['genres'] ?? []);
+      if (genres.isEmpty) {
+        genres = List<String>.from(game['platforms'] ?? []);
+      }
+      
+      for (var genre in genres) {
+        genreCounts[genre] = (genreCounts[genre] ?? 0) + 1;
+      }
+    }
+
+    double avgRating = totalRating / totalGames;
+    
+    String favoriteYear = '-';
+    if (yearCounts.isNotEmpty) {
+      var sortedYears = yearCounts.entries.toList()..sort((a, b) => b.value.compareTo(a.value));
+      favoriteYear = sortedYears.first.key;
+    }
+
+    var sortedGenres = genreCounts.entries.toList()..sort((a, b) => b.value.compareTo(a.value));
+    String favoriteGenre = sortedGenres.isNotEmpty ? sortedGenres.first.key : '-';
+    
+    var topGenres = sortedGenres.take(3).toList();
+    int topGenresTotal = topGenres.fold(0, (sum, item) => sum + item.value);
+
+    return SingleChildScrollView(
+      padding: const EdgeInsets.all(16),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          _buildStatCard('Total Games Played', totalGames.toString(), Icons.videogame_asset),
+          const SizedBox(height: 12),
+          Row(
+            children: [
+              Expanded(child: _buildStatCard('Avg Rating', avgRating.toStringAsFixed(1), Icons.star)),
+              const SizedBox(width: 12),
+              Expanded(child: _buildStatCard('Most Played Year', favoriteYear, Icons.calendar_today)),
+            ],
+          ),
+          const SizedBox(height: 12),
+          _buildStatCard('Favorite Genre/Platform', favoriteGenre, Icons.category),
+          const SizedBox(height: 24),
+          const Text(
+            'Top Genres / Platforms',
+            style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+          ),
+          const SizedBox(height: 16),
+          Container(
+            padding: const EdgeInsets.all(16),
+            decoration: BoxDecoration(
+              color: AppTheme.cardColor,
+              borderRadius: BorderRadius.circular(20),
+            ),
+            child: topGenresTotal > 0 ? Column(
+              children: topGenres.map((e) {
+                double percentage = e.value / topGenresTotal;
+                return Padding(
+                  padding: const EdgeInsets.only(bottom: 12.0),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          Text(e.key, style: const TextStyle(fontWeight: FontWeight.w500)),
+                          Text('${(percentage * 100).toStringAsFixed(0)}%', style: const TextStyle(color: Colors.grey)),
+                        ],
+                      ),
+                      const SizedBox(height: 8),
+                      LinearProgressIndicator(
+                        value: percentage,
+                        backgroundColor: Colors.grey[800],
+                        color: AppTheme.primaryColor,
+                        minHeight: 8,
+                        borderRadius: BorderRadius.circular(4),
+                      ),
+                    ],
+                  ),
+                );
+              }).toList(),
+            ) : const Text('Not enough data for chart', style: TextStyle(color: Colors.grey)),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildStatCard(String title, String value, IconData icon) {
+    return Container(
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: AppTheme.cardColor,
+        borderRadius: BorderRadius.circular(20),
+      ),
+      child: Row(
+        children: [
+          Container(
+            padding: const EdgeInsets.all(10),
+            decoration: BoxDecoration(
+              color: AppTheme.primaryColor.withOpacity(0.2),
+              shape: BoxShape.circle,
+            ),
+            child: Icon(icon, color: AppTheme.primaryColor),
+          ),
+          const SizedBox(width: 16),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  title,
+                  style: const TextStyle(color: Colors.grey, fontSize: 12),
+                ),
+                const SizedBox(height: 4),
+                Text(
+                  value,
+                  style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                ),
+              ],
+            ),
+          ),
+        ],
       ),
     );
   }
@@ -299,6 +457,7 @@ class UserProfileScreen extends StatelessWidget {
       rating: (gameData['rating'] ?? 0).toDouble(),
       releasedDate: gameData['releasedDate'] ?? '-',
       platforms: List<String>.from(gameData['platforms'] ?? []),
+      genres: List<String>.from(gameData['genres'] ?? []),
       description: '',
     );
 
