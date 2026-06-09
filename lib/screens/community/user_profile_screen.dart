@@ -123,13 +123,10 @@ class UserProfileScreen extends StatelessWidget {
     }
 
     int totalGames = played.length;
-    double totalRating = 0;
     Map<String, int> yearCounts = {};
     Map<String, int> genreCounts = {};
     
     for (var game in played) {
-      totalRating += (game['rating'] ?? 0).toDouble();
-      
       String releaseDate = game['releasedDate'] ?? '';
       if (releaseDate.length >= 4) {
         String year = releaseDate.substring(0, 4);
@@ -146,8 +143,6 @@ class UserProfileScreen extends StatelessWidget {
       }
     }
 
-    double avgRating = totalRating / totalGames;
-    
     String favoriteYear = '-';
     if (yearCounts.isNotEmpty) {
       var sortedYears = yearCounts.entries.toList()..sort((a, b) => b.value.compareTo(a.value));
@@ -167,13 +162,7 @@ class UserProfileScreen extends StatelessWidget {
         children: [
           _buildStatCard('Total Games Played', totalGames.toString(), Icons.videogame_asset),
           const SizedBox(height: 12),
-          Row(
-            children: [
-              Expanded(child: _buildStatCard('Avg Rating', avgRating.toStringAsFixed(1), Icons.star)),
-              const SizedBox(width: 12),
-              Expanded(child: _buildStatCard('Most Played Year', favoriteYear, Icons.calendar_today)),
-            ],
-          ),
+          _buildStatCard('Most Played Year', favoriteYear, Icons.calendar_today),
           const SizedBox(height: 12),
           _buildStatCard('Favorite Genre/Platform', favoriteGenre, Icons.category),
           const SizedBox(height: 24),

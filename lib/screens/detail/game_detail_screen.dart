@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 import 'package:social_game_tracker/core/theme/app_theme.dart';
 import 'package:social_game_tracker/models/game_model.dart';
@@ -409,6 +410,32 @@ class _GameDetailScreenState extends State<GameDetailScreen> {
                               : 'No description available.',
                           style: AppTheme.bodyText.copyWith(height: 1.5),
                         ),
+                  if (!isLoadingDescription && gameDetail?.website.isNotEmpty == true) ...[
+                    const SizedBox(height: 24),
+                    SizedBox(
+                      width: double.infinity,
+                      child: ElevatedButton.icon(
+                        onPressed: () async {
+                          final url = Uri.parse(gameDetail!.website);
+                          if (await canLaunchUrl(url)) {
+                            await launchUrl(url);
+                          } else {
+                            if (context.mounted) {
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                const SnackBar(content: Text('Could not launch website')),
+                              );
+                            }
+                          }
+                        },
+                        icon: const Icon(Icons.language),
+                        label: const Text('Visit Official Website'),
+                        style: ElevatedButton.styleFrom(
+                          padding: const EdgeInsets.symmetric(vertical: 16),
+                          backgroundColor: Colors.blueAccent,
+                        ),
+                      ),
+                    ),
+                  ],
                   const SizedBox(height: 40),
                   SizedBox(
                     width: double.infinity,

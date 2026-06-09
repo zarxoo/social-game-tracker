@@ -7,6 +7,7 @@ class GameModel {
   final List<String> platforms;
   final List<String> genres;
   final String description;
+  final String website;
 
   GameModel({
     required this.id,
@@ -17,6 +18,7 @@ class GameModel {
     required this.platforms,
     required this.genres,
     required this.description,
+    this.website = '',
   });
 
   factory GameModel.fromJson(Map<String, dynamic> json) {
@@ -41,6 +43,7 @@ class GameModel {
               .toList() ??
           [],
       description: json['description_raw'] ?? '',
+      website: json['website'] ?? '',
     );
   }
 }
