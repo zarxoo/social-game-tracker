@@ -8,6 +8,7 @@ class GameModel {
   final List<String> genres;
   final String description;
   final String website;
+  final List<String> screenshots;
 
   GameModel({
     required this.id,
@@ -19,6 +20,7 @@ class GameModel {
     required this.genres,
     required this.description,
     this.website = '',
+    this.screenshots = const [],
   });
 
   factory GameModel.fromJson(Map<String, dynamic> json) {
@@ -28,22 +30,24 @@ class GameModel {
       backgroundImage: json['background_image'] ?? '',
       rating: (json['rating'] ?? 0).toDouble(),
       releasedDate: json['released'] ?? '-',
-      platforms: (json['platforms'] as List?)
-              ?.map(
-                (platform) =>
-                    platform['platform']['name'].toString(),
-              )
+      platforms:
+          (json['platforms'] as List?)
+              ?.map((platform) => platform['platform']['name'].toString())
               .toList() ??
           [],
-      genres: (json['genres'] as List?)
-              ?.map(
-                (genre) =>
-                    genre['name'].toString(),
-              )
+      genres:
+          (json['genres'] as List?)
+              ?.map((genre) => genre['name'].toString())
               .toList() ??
           [],
       description: json['description_raw'] ?? '',
       website: json['website'] ?? '',
+
+      screenshots:
+          (json['short_screenshots'] as List?)
+              ?.map((screenshot) => screenshot['image'].toString())
+              .toList() ??
+          [],
     );
   }
 }

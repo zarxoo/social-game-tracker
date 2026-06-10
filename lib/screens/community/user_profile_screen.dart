@@ -14,7 +14,6 @@ class UserProfileScreen extends StatelessWidget {
     final played = userData['played'] ?? [];
     final favorites = userData['favorites'] ?? [];
     final username = (userData['username'] ?? 'Player').toString();
-    final email = (userData['email'] ?? '').toString();
 
     return DefaultTabController(
       length: 4,
@@ -61,14 +60,6 @@ class UserProfileScreen extends StatelessWidget {
                     style: const TextStyle(
                       fontSize: 24,
                       fontWeight: FontWeight.bold,
-                    ),
-                  ),
-                  const SizedBox(height: 8),
-                  Text(
-                    email.isNotEmpty ? email : 'No email provided',
-                    style: const TextStyle(
-                      color: Colors.grey,
-                      fontSize: 16,
                     ),
                   ),
                 ],

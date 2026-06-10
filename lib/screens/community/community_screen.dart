@@ -311,10 +311,6 @@ class _CommunityScreenState
                               data['username'] ??
                                   '';
 
-                          final email =
-                              data['email'] ??
-                                  '';
-
                           return Container(
                             margin:
                                 const EdgeInsets
@@ -409,16 +405,6 @@ class _CommunityScreenState
 
                                   color:
                                       Colors.white,
-                                ),
-                              ),
-
-                              subtitle: Text(
-                                email,
-
-                                style: AppTheme
-                                    .subtitleText
-                                    .copyWith(
-                                  fontSize: 12,
                                 ),
                               ),
 

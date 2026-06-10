@@ -4,103 +4,50 @@ import '../core/constants/api_constants.dart';
 import '../models/game_model.dart';
 
 class RawgService {
-
   final Dio _dio = Dio(
     BaseOptions(
-      connectTimeout:
-          const Duration(seconds: 10),
-
-      receiveTimeout:
-          const Duration(seconds: 10),
+      connectTimeout: const Duration(seconds: 10),
+      receiveTimeout: const Duration(seconds: 10),
     ),
   );
 
   // GET GAMES
-  Future<List<GameModel>>
-      getGames({
-    int page = 1,
-  }) async {
-
+  Future<List<GameModel>> getGames({int page = 1}) async {
     try {
-
-      final response =
-          await _dio.get(
-
+      final response = await _dio.get(
         '${ApiConstants.baseUrl}/games',
-
         queryParameters: {
-
-          'key':
-              ApiConstants.apiKey,
-
+          'key': ApiConstants.apiKey,
           'page': page,
-
-          // SMALLER = SMOOTHER
           'page_size': 10,
         },
       );
 
-      final List results =
-          response.data['results'];
+      final List results = response.data['results'];
 
-      return results
-          .map(
-            (game) =>
-                GameModel.fromJson(
-              game,
-            ),
-          )
-          .toList();
-
+      return results.map((game) => GameModel.fromJson(game)).toList();
     } catch (e) {
-
-      throw Exception(
-        'Failed to load games',
-      );
+      throw Exception('Failed to load games');
     }
   }
 
   // SEARCH GAMES
-  Future<List<GameModel>>
-      searchGames(
-    String keyword,
-  ) async {
-
+  Future<List<GameModel>> searchGames(String keyword) async {
     try {
-
-      final response =
-          await _dio.get(
-
+      final response = await _dio.get(
         '${ApiConstants.baseUrl}/games',
-
         queryParameters: {
-
-          'key':
-              ApiConstants.apiKey,
-
+          'key': ApiConstants.apiKey,
           'search': keyword,
-
           'page_size': 10,
         },
       );
 
-      final List results =
-          response.data['results'];
+      final List results = response.data['results'];
 
-      return results
-          .map(
-            (game) =>
-                GameModel.fromJson(
-              game,
-            ),
-          )
-          .toList();
-
+      return results.map((game) => GameModel.fromJson(game)).toList();
     } catch (e) {
-
-      throw Exception(
-        'Failed to search games',
-      );
+      throw Exception('Failed to search games');
     }
   }
 
@@ -109,16 +56,30 @@ class RawgService {
     try {
       final response = await _dio.get(
         '${ApiConstants.baseUrl}/games/$id',
-        queryParameters: {
-          'key': ApiConstants.apiKey,
-        },
+        queryParameters: {'key': ApiConstants.apiKey},
       );
 
       return GameModel.fromJson(response.data);
     } catch (e) {
-      throw Exception(
-        'Failed to get game details',
+      throw Exception('Failed to get game details');
+    }
+  }
+
+  // GET GAME SCREENSHOTS
+  Future<List<String>> getGameScreenshots(int id) async {
+    try {
+      final response = await _dio.get(
+        '${ApiConstants.baseUrl}/games/$id/screenshots',
+        queryParameters: {'key': ApiConstants.apiKey},
       );
+
+      final List results = response.data['results'];
+
+      return results
+          .map((screenshot) => screenshot['image'].toString())
+          .toList();
+    } catch (e) {
+      return [];
     }
   }
 }

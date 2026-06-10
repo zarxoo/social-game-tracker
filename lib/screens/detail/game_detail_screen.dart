@@ -9,6 +9,7 @@ import 'package:social_game_tracker/models/game_model.dart';
 import '../../services/firestore_service.dart';
 import '../../services/rawg_service.dart';
 import '../auth/login_screen.dart';
+import 'package:carousel_slider/carousel_slider.dart';
 
 class GameDetailScreen extends StatefulWidget {
   final GameModel game;
@@ -26,6 +27,7 @@ class _GameDetailScreenState extends State<GameDetailScreen> {
 
   GameModel? gameDetail;
   bool isLoadingDescription = true;
+  List<String> screenshots = [];
 
   @override
   void initState() {
@@ -86,10 +88,16 @@ class _GameDetailScreenState extends State<GameDetailScreen> {
 
   Future<void> _loadGameDetails() async {
     try {
-      final detail = await RawgService().getGameDetails(widget.game.id);
+      final service = RawgService();
+
+      final results = await Future.wait([
+        service.getGameDetails(widget.game.id),
+        service.getGameScreenshots(widget.game.id),
+      ]);
 
       setState(() {
-        gameDetail = detail;
+        gameDetail = results[0] as GameModel;
+        screenshots = results[1] as List<String>;
         isLoadingDescription = false;
       });
     } catch (e) {
@@ -298,15 +306,47 @@ class _GameDetailScreenState extends State<GameDetailScreen> {
                 fit: StackFit.expand,
                 children: [
                   Container(color: Colors.grey[800]),
-                  if (widget.game.backgroundImage.isNotEmpty)
+                  if (screenshots.isNotEmpty)
+                    CarouselSlider(
+                      options: CarouselOptions(
+                        height: 300,
+                        viewportFraction: 1.0,
+                        autoPlay: true,
+                        autoPlayInterval: const Duration(seconds: 3),
+                        enlargeCenterPage: false,
+                      ),
+                      items: screenshots.map((image) {
+                        return Builder(
+                          builder: (context) {
+                            return SizedBox(
+                              width: MediaQuery.of(context).size.width,
+                              child: Image.network(
+                                image,
+                                fit: BoxFit.cover,
+                                width: double.infinity,
+                                height: double.infinity,
+                                errorBuilder: (context, error, stackTrace) {
+                                  return const Center(
+                                    child: Icon(Icons.broken_image, size: 80),
+                                  );
+                                },
+                              ),
+                            );
+                          },
+                        );
+                      }).toList(),
+                    )
+                  else if (widget.game.backgroundImage.isNotEmpty)
                     Image.network(
                       widget.game.backgroundImage,
                       fit: BoxFit.cover,
-                      errorBuilder: (context, error, stackTrace) => const Icon(
-                        Icons.videogame_asset,
-                        size: 80,
-                        color: Colors.grey,
-                      ),
+                      errorBuilder: (context, error, stackTrace) {
+                        return const Icon(
+                          Icons.videogame_asset,
+                          size: 80,
+                          color: Colors.grey,
+                        );
+                      },
                     )
                   else
                     const Center(
@@ -403,14 +443,17 @@ class _GameDetailScreenState extends State<GameDetailScreen> {
                   const Text('Description', style: AppTheme.heading2),
                   const SizedBox(height: 8),
                   isLoadingDescription
-                      ? const SizedBox(height: 24) // Empty space instead of loading spinner
+                      ? const SizedBox(
+                          height: 24,
+                        ) // Empty space instead of loading spinner
                       : Text(
                           gameDetail?.description.isNotEmpty == true
                               ? getEnglishDescription(gameDetail!.description)
                               : 'No description available.',
                           style: AppTheme.bodyText.copyWith(height: 1.5),
                         ),
-                  if (!isLoadingDescription && gameDetail?.website.isNotEmpty == true) ...[
+                  if (!isLoadingDescription &&
+                      gameDetail?.website.isNotEmpty == true) ...[
                     const SizedBox(height: 24),
                     SizedBox(
                       width: double.infinity,
@@ -422,7 +465,9 @@ class _GameDetailScreenState extends State<GameDetailScreen> {
                           } else {
                             if (context.mounted) {
                               ScaffoldMessenger.of(context).showSnackBar(
-                                const SnackBar(content: Text('Could not launch website')),
+                                const SnackBar(
+                                  content: Text('Could not launch website'),
+                                ),
                               );
                             }
                           }
