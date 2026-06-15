@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
@@ -29,6 +31,11 @@ class _GameDetailScreenState extends State<GameDetailScreen> {
   bool isLoadingDescription = true;
   List<String> screenshots = [];
 
+  final CarouselSliderController _screenshotCarouselController =
+      CarouselSliderController();
+
+  Timer? _screenshotIdleTimer;
+
   @override
   void initState() {
     super.initState();
@@ -48,9 +55,44 @@ class _GameDetailScreenState extends State<GameDetailScreen> {
     return text;
   }
 
+  void _cancelScreenshotAutoSlide() {
+    _screenshotIdleTimer?.cancel();
+    _screenshotIdleTimer = null;
+  }
+
+  void _restartScreenshotAutoSlide() {
+    _cancelScreenshotAutoSlide();
+
+    if (!mounted || screenshots.length <= 1) return;
+
+    _screenshotIdleTimer = Timer(const Duration(seconds: 3), () async {
+      if (!mounted || screenshots.length <= 1) return;
+
+      final route = ModalRoute.of(context);
+      if (route?.isCurrent == false) {
+        _restartScreenshotAutoSlide();
+        return;
+      }
+
+      try {
+        await _screenshotCarouselController.nextPage(
+          duration: const Duration(milliseconds: 700),
+          curve: Curves.easeInOutCubic,
+        );
+      } catch (e) {
+        debugPrint('ERROR AUTO SLIDE SCREENSHOT: $e');
+      }
+
+      _restartScreenshotAutoSlide();
+    });
+  }
+
   Future<void> _checkGameStatus() async {
     final user = FirebaseAuth.instance.currentUser;
+
     if (user == null) {
+      if (!mounted) return;
+
       setState(() {
         _isWishlisted = false;
         _isPlayed = false;
@@ -61,11 +103,11 @@ class _GameDetailScreenState extends State<GameDetailScreen> {
 
     final uid = user.uid;
 
-    final snapshot = await FirebaseFirestore.instance
-        .collection('users')
-        .doc(uid)
-        .get();
+    final snapshot =
+        await FirebaseFirestore.instance.collection('users').doc(uid).get();
+
     if (!snapshot.exists) return;
+    if (!mounted) return;
 
     final data = snapshot.data() as Map<String, dynamic>;
 
@@ -95,12 +137,20 @@ class _GameDetailScreenState extends State<GameDetailScreen> {
         service.getGameScreenshots(widget.game.id),
       ]);
 
+      if (!mounted) return;
+
       setState(() {
         gameDetail = results[0] as GameModel;
         screenshots = results[1] as List<String>;
         isLoadingDescription = false;
       });
+
+      _restartScreenshotAutoSlide();
     } catch (e) {
+      debugPrint('ERROR LOAD GAME DETAILS: $e');
+
+      if (!mounted) return;
+
       setState(() {
         isLoadingDescription = false;
       });
@@ -109,6 +159,7 @@ class _GameDetailScreenState extends State<GameDetailScreen> {
 
   Future<void> _toggleWishlist() async {
     final user = FirebaseAuth.instance.currentUser;
+
     if (user == null) {
       if (context.mounted) {
         Navigator.push(
@@ -134,15 +185,15 @@ class _GameDetailScreenState extends State<GameDetailScreen> {
           gameGenres: widget.game.genres,
         );
 
+        if (!mounted) return;
+
         setState(() {
           _isWishlisted = true;
         });
 
-        if (context.mounted) {
-          ScaffoldMessenger.of(
-            context,
-          ).showSnackBar(const SnackBar(content: Text('Added to Wishlist')));
-        }
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Added to Wishlist')),
+        );
       } else {
         await FirestoreService().removeWishlist(
           uid: uid,
@@ -154,15 +205,15 @@ class _GameDetailScreenState extends State<GameDetailScreen> {
           gamePlatforms: widget.game.platforms,
         );
 
+        if (!mounted) return;
+
         setState(() {
           _isWishlisted = false;
         });
 
-        if (context.mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(content: Text('Removed from Wishlist')),
-          );
-        }
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Removed from Wishlist')),
+        );
       }
     } catch (e) {
       debugPrint('ERROR WISHLIST: $e');
@@ -171,6 +222,7 @@ class _GameDetailScreenState extends State<GameDetailScreen> {
 
   Future<void> _togglePlayed() async {
     final user = FirebaseAuth.instance.currentUser;
+
     if (user == null) {
       if (context.mounted) {
         Navigator.push(
@@ -196,15 +248,15 @@ class _GameDetailScreenState extends State<GameDetailScreen> {
           gameGenres: widget.game.genres,
         );
 
+        if (!mounted) return;
+
         setState(() {
           _isPlayed = true;
         });
 
-        if (context.mounted) {
-          ScaffoldMessenger.of(
-            context,
-          ).showSnackBar(const SnackBar(content: Text('Added to Played')));
-        }
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Added to Played')),
+        );
       } else {
         await FirestoreService().removePlayed(
           uid: uid,
@@ -216,15 +268,15 @@ class _GameDetailScreenState extends State<GameDetailScreen> {
           gamePlatforms: widget.game.platforms,
         );
 
+        if (!mounted) return;
+
         setState(() {
           _isPlayed = false;
         });
 
-        if (context.mounted) {
-          ScaffoldMessenger.of(
-            context,
-          ).showSnackBar(const SnackBar(content: Text('Removed from Played')));
-        }
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Removed from Played')),
+        );
       }
     } catch (e) {
       debugPrint('ERROR PLAYED: $e');
@@ -233,6 +285,7 @@ class _GameDetailScreenState extends State<GameDetailScreen> {
 
   Future<void> _toggleFavorite() async {
     final user = FirebaseAuth.instance.currentUser;
+
     if (user == null) {
       if (context.mounted) {
         Navigator.push(
@@ -258,15 +311,15 @@ class _GameDetailScreenState extends State<GameDetailScreen> {
           gameGenres: widget.game.genres,
         );
 
+        if (!mounted) return;
+
         setState(() {
           _isFavorite = true;
         });
 
-        if (context.mounted) {
-          ScaffoldMessenger.of(
-            context,
-          ).showSnackBar(const SnackBar(content: Text('Added to Favorite')));
-        }
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Added to Favorite')),
+        );
       } else {
         await FirestoreService().removeFavorite(
           uid: uid,
@@ -278,19 +331,25 @@ class _GameDetailScreenState extends State<GameDetailScreen> {
           gamePlatforms: widget.game.platforms,
         );
 
+        if (!mounted) return;
+
         setState(() {
           _isFavorite = false;
         });
 
-        if (context.mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(content: Text('Removed from Favorite')),
-          );
-        }
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Removed from Favorite')),
+        );
       }
     } catch (e) {
       debugPrint('ERROR FAVORITE: $e');
     }
+  }
+
+  @override
+  void dispose() {
+    _cancelScreenshotAutoSlide();
+    super.dispose();
   }
 
   @override
@@ -306,35 +365,63 @@ class _GameDetailScreenState extends State<GameDetailScreen> {
                 fit: StackFit.expand,
                 children: [
                   Container(color: Colors.grey[800]),
+
                   if (screenshots.isNotEmpty)
-                    CarouselSlider(
-                      options: CarouselOptions(
-                        height: 300,
-                        viewportFraction: 1.0,
-                        autoPlay: true,
-                        autoPlayInterval: const Duration(seconds: 3),
-                        enlargeCenterPage: false,
-                      ),
-                      items: screenshots.map((image) {
-                        return Builder(
-                          builder: (context) {
-                            return SizedBox(
-                              width: MediaQuery.of(context).size.width,
-                              child: Image.network(
-                                image,
-                                fit: BoxFit.cover,
-                                width: double.infinity,
-                                height: double.infinity,
-                                errorBuilder: (context, error, stackTrace) {
-                                  return const Center(
-                                    child: Icon(Icons.broken_image, size: 80),
-                                  );
-                                },
-                              ),
-                            );
+                    Listener(
+                      behavior: HitTestBehavior.translucent,
+                      onPointerDown: (_) {
+                        _cancelScreenshotAutoSlide();
+                      },
+                      onPointerUp: (_) {
+                        _restartScreenshotAutoSlide();
+                      },
+                      onPointerCancel: (_) {
+                        _restartScreenshotAutoSlide();
+                      },
+                      child: CarouselSlider(
+                        carouselController: _screenshotCarouselController,
+                        disableGesture: false,
+                        options: CarouselOptions(
+                          height: 300,
+                          viewportFraction: 1.0,
+
+                          // Matikan autoplay bawaan package.
+                          // Kita pakai timer custom agar hybrid:
+                          // manual bisa, auto jalan setelah diam 3 detik.
+                          autoPlay: false,
+
+                          // Biar swipe manual tetap aktif.
+                          scrollPhysics: const PageScrollPhysics(),
+
+                          enableInfiniteScroll: true,
+                          enlargeCenterPage: false,
+
+                          onPageChanged: (index, reason) {
+                            if (reason == CarouselPageChangedReason.manual) {
+                              _restartScreenshotAutoSlide();
+                            }
                           },
-                        );
-                      }).toList(),
+                        ),
+                        items: screenshots.map((image) {
+                          return SizedBox(
+                            width: MediaQuery.of(context).size.width,
+                            child: Image.network(
+                              image,
+                              fit: BoxFit.cover,
+                              width: double.infinity,
+                              height: double.infinity,
+                              errorBuilder: (context, error, stackTrace) {
+                                return const Center(
+                                  child: Icon(
+                                    Icons.broken_image,
+                                    size: 80,
+                                  ),
+                                );
+                              },
+                            ),
+                          );
+                        }).toList(),
+                      ),
                     )
                   else if (widget.game.backgroundImage.isNotEmpty)
                     Image.network(
@@ -356,16 +443,23 @@ class _GameDetailScreenState extends State<GameDetailScreen> {
                         color: Colors.grey,
                       ),
                     ),
-                  Container(
-                    decoration: BoxDecoration(
-                      gradient: LinearGradient(
-                        begin: Alignment.topCenter,
-                        end: Alignment.bottomCenter,
-                        colors: [
-                          Colors.transparent,
-                          AppTheme.backgroundColor.withOpacity(0.8),
-                          AppTheme.backgroundColor,
-                        ],
+
+                  // Penting:
+                  // Gradient tetap tampil, tapi tidak menangkap gesture.
+                  // Jadi swipe ke CarouselSlider tetap masuk.
+                  IgnorePointer(
+                    ignoring: true,
+                    child: Container(
+                      decoration: BoxDecoration(
+                        gradient: LinearGradient(
+                          begin: Alignment.topCenter,
+                          end: Alignment.bottomCenter,
+                          colors: [
+                            Colors.transparent,
+                            AppTheme.backgroundColor.withOpacity(0.8),
+                            AppTheme.backgroundColor,
+                          ],
+                        ),
                       ),
                     ),
                   ),
@@ -382,6 +476,7 @@ class _GameDetailScreenState extends State<GameDetailScreen> {
               ),
             ],
           ),
+
           SliverToBoxAdapter(
             child: Padding(
               padding: const EdgeInsets.all(20.0),
@@ -392,7 +487,9 @@ class _GameDetailScreenState extends State<GameDetailScreen> {
                     widget.game.name,
                     style: AppTheme.heading1.copyWith(fontSize: 24),
                   ),
+
                   const SizedBox(height: 12),
+
                   Row(
                     children: [
                       const Icon(
@@ -422,9 +519,13 @@ class _GameDetailScreenState extends State<GameDetailScreen> {
                       ),
                     ],
                   ),
+
                   const SizedBox(height: 24),
+
                   const Text('Platforms', style: AppTheme.heading2),
+
                   const SizedBox(height: 8),
+
                   Wrap(
                     spacing: 8,
                     runSpacing: 8,
@@ -439,19 +540,22 @@ class _GameDetailScreenState extends State<GameDetailScreen> {
                       );
                     }).toList(),
                   ),
+
                   const SizedBox(height: 24),
+
                   const Text('Description', style: AppTheme.heading2),
+
                   const SizedBox(height: 8),
+
                   isLoadingDescription
-                      ? const SizedBox(
-                          height: 24,
-                        ) // Empty space instead of loading spinner
+                      ? const SizedBox(height: 24)
                       : Text(
                           gameDetail?.description.isNotEmpty == true
                               ? getEnglishDescription(gameDetail!.description)
                               : 'No description available.',
                           style: AppTheme.bodyText.copyWith(height: 1.5),
                         ),
+
                   if (!isLoadingDescription &&
                       gameDetail?.website.isNotEmpty == true) ...[
                     const SizedBox(height: 24),
@@ -460,6 +564,7 @@ class _GameDetailScreenState extends State<GameDetailScreen> {
                       child: ElevatedButton.icon(
                         onPressed: () async {
                           final url = Uri.parse(gameDetail!.website);
+
                           if (await canLaunchUrl(url)) {
                             await launchUrl(url);
                           } else {
@@ -481,7 +586,9 @@ class _GameDetailScreenState extends State<GameDetailScreen> {
                       ),
                     ),
                   ],
+
                   const SizedBox(height: 40),
+
                   SizedBox(
                     width: double.infinity,
                     child: ElevatedButton.icon(
@@ -504,7 +611,9 @@ class _GameDetailScreenState extends State<GameDetailScreen> {
                       ),
                     ),
                   ),
+
                   const SizedBox(height: 16),
+
                   Row(
                     children: [
                       Expanded(
@@ -518,13 +627,14 @@ class _GameDetailScreenState extends State<GameDetailScreen> {
                           label: Text(_isPlayed ? 'Played' : 'Add to Played'),
                           style: ElevatedButton.styleFrom(
                             padding: const EdgeInsets.symmetric(vertical: 16),
-                            backgroundColor: _isPlayed
-                                ? AppTheme.cardColor
-                                : Colors.teal,
+                            backgroundColor:
+                                _isPlayed ? AppTheme.cardColor : Colors.teal,
                           ),
                         ),
                       ),
+
                       const SizedBox(width: 16),
+
                       Expanded(
                         child: ElevatedButton.icon(
                           onPressed: _toggleFavorite,
@@ -536,14 +646,14 @@ class _GameDetailScreenState extends State<GameDetailScreen> {
                           label: Text(_isFavorite ? 'Favorited' : 'Favorite'),
                           style: ElevatedButton.styleFrom(
                             padding: const EdgeInsets.symmetric(vertical: 16),
-                            backgroundColor: _isFavorite
-                                ? AppTheme.cardColor
-                                : Colors.pink,
+                            backgroundColor:
+                                _isFavorite ? AppTheme.cardColor : Colors.pink,
                           ),
                         ),
                       ),
                     ],
                   ),
+
                   const SizedBox(height: 40),
                 ],
               ),
