@@ -8,6 +8,7 @@ import '../../services/auth_service.dart';
 
 import '../main_screen.dart';
 import '../detail/game_detail_screen.dart';
+import 'edit_profile_screen.dart';
 
 class ProfileScreen extends StatelessWidget {
   const ProfileScreen({
@@ -41,6 +42,31 @@ class ProfileScreen extends StatelessWidget {
           backgroundColor: AppTheme.primaryColor.withOpacity(0.92),
           foregroundColor: Colors.white,
           actions: [
+            IconButton(
+              tooltip: 'Edit Profile',
+              onPressed: () async {
+                final userDoc = await FirebaseFirestore.instance
+                    .collection('users')
+                    .doc(uid)
+                    .get();
+                
+                if (context.mounted) {
+                  final username = _readUsername(
+                    userDoc.data() ?? {},
+                  );
+                  
+                  await Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (_) => EditProfileScreen(
+                        currentUsername: username,
+                      ),
+                    ),
+                  );
+                }
+              },
+              icon: const Icon(Icons.edit_rounded),
+            ),
             IconButton(
               tooltip: 'Logout',
               onPressed: () async {
