@@ -363,10 +363,6 @@ class ProfileScreen extends StatelessWidget {
 
       var genres = _readStringList(game['genres']);
 
-      if (genres.isEmpty) {
-        genres = _readStringList(game['platforms']);
-      }
-
       for (final genre in genres) {
         genreCounts[genre] = (genreCounts[genre] ?? 0) + 1;
       }
@@ -406,14 +402,14 @@ class ProfileScreen extends StatelessWidget {
         ),
         const SizedBox(height: 12),
         _buildStatCard(
-          title: 'Favorite Genre / Platform',
+          title: 'Favorite Genre',
           value: favoriteGenre,
           icon: Icons.category_rounded,
           color: Colors.tealAccent,
         ),
         const SizedBox(height: 24),
         const Text(
-          'Top Genres / Platforms',
+          'Top Genres',
           style: TextStyle(
             color: Colors.white,
             fontSize: 18,
@@ -609,9 +605,7 @@ class ProfileScreen extends StatelessWidget {
     );
 
     final rating = _readDouble(game['rating']);
-    final genres = _readStringList(game['genres']);
-    final platforms = _readStringList(game['platforms']);
-    final tags = genres.isNotEmpty ? genres : platforms;
+    final tags = _readStringList(game['genres']);
 
     return Padding(
       padding: const EdgeInsets.only(bottom: 14),

@@ -7,7 +7,7 @@ class GameCard extends StatelessWidget {
   final String title;
   final String releaseDate;
   final double rating;
-  final String platforms;
+  final String genres;
   final String imageUrl;
 
   /// Isi ini kalau kamu punya banyak gambar/screenshot.
@@ -21,7 +21,7 @@ class GameCard extends StatelessWidget {
     required this.title,
     required this.releaseDate,
     required this.rating,
-    required this.platforms,
+    required this.genres,
     required this.imageUrl,
     this.imageUrls = const [],
     this.onDetailPressed,
@@ -36,13 +36,13 @@ class GameCard extends StatelessWidget {
     return images.toSet().toList();
   }
 
-  List<String> get platformList {
-    if (platforms.trim().isEmpty) return [];
+  List<String> get genreList {
+    if (genres.trim().isEmpty) return [];
 
-    return platforms
+    return genres
         .split(',')
-        .map((platform) => platform.trim())
-        .where((platform) => platform.isNotEmpty)
+        .map((genre) => genre.trim())
+        .where((genre) => genre.isNotEmpty)
         .take(3)
         .toList();
   }
@@ -141,21 +141,21 @@ class GameCard extends StatelessWidget {
 
                     const SizedBox(height: 12),
 
-                    if (platformList.isNotEmpty)
+                    if (genreList.isNotEmpty)
                       Wrap(
                         spacing: 7,
                         runSpacing: 7,
-                        children: platformList
+                        children: genreList
                             .map(
-                              (platform) => _PlatformChip(
-                                label: platform,
+                              (genre) => _GenreChip(
+                                label: genre,
                               ),
                             )
                             .toList(),
                       )
                     else
                       Text(
-                        'Platform information unavailable',
+                        'Genre information unavailable',
                         style: AppTheme.subtitleText.copyWith(
                           fontSize: 10,
                           color: Colors.white.withOpacity(0.45),
@@ -168,9 +168,9 @@ class GameCard extends StatelessWidget {
                       children: [
                         Expanded(
                           child: Text(
-                            platforms.trim().isEmpty
-                                ? 'Unknown platform'
-                                : platforms,
+                            genres.trim().isEmpty
+                                ? 'Unknown genre'
+                                : genres,
                             style: AppTheme.subtitleText.copyWith(
                               fontSize: 10,
                               color: Colors.white.withOpacity(0.42),
@@ -481,37 +481,61 @@ class _RatingBadge extends StatelessWidget {
   }
 }
 
-class _PlatformChip extends StatelessWidget {
+class _GenreChip extends StatelessWidget {
   final String label;
 
-  const _PlatformChip({
+  const _GenreChip({
     required this.label,
   });
 
-  IconData get platformIcon {
+  IconData get genreIcon {
     final value = label.toLowerCase();
 
-    if (value.contains('pc')) {
-      return Icons.computer_rounded;
+    if (value.contains('shooter')) {
+      return Icons.radio_button_checked_rounded;
     }
 
-    if (value.contains('playstation')) {
-      return Icons.sports_esports_rounded;
+    if (value.contains('action')) {
+      return Icons.bolt_rounded;
     }
 
-    if (value.contains('xbox')) {
-      return Icons.gamepad_rounded;
+    if (value.contains('rpg') || value.contains('role-playing')) {
+      return Icons.person_rounded;
     }
 
-    if (value.contains('nintendo')) {
-      return Icons.videogame_asset_rounded;
+    if (value.contains('adventure')) {
+      return Icons.explore_rounded;
     }
 
-    if (value.contains('ios') || value.contains('android')) {
-      return Icons.phone_iphone_rounded;
+    if (value.contains('puzzle')) {
+      return Icons.extension_rounded;
     }
 
-    return Icons.devices_rounded;
+    if (value.contains('strategy')) {
+      return Icons.checklist_rounded;
+    }
+
+    if (value.contains('horror')) {
+      return Icons.warning_rounded;
+    }
+
+    if (value.contains('fighting')) {
+      return Icons.pan_tool_rounded;
+    }
+
+    if (value.contains('sports')) {
+      return Icons.sports_soccer_rounded;
+    }
+
+    if (value.contains('racing')) {
+      return Icons.speed_rounded;
+    }
+
+    if (value.contains('simulation')) {
+      return Icons.settings_rounded;
+    }
+
+    return Icons.category_rounded;
   }
 
   @override
@@ -532,7 +556,7 @@ class _PlatformChip extends StatelessWidget {
         mainAxisSize: MainAxisSize.min,
         children: [
           Icon(
-            platformIcon,
+            genreIcon,
             color: Colors.white.withOpacity(0.74),
             size: 12,
           ),

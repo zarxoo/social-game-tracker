@@ -322,8 +322,8 @@ class _HomeScreenState
                   rating:
                       game.rating,
 
-                  platforms: game
-                      .platforms
+                  genres: game
+                      .genres
                       .join(', '),
 
                   imageUrl:
