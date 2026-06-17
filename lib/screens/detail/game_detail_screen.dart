@@ -456,8 +456,8 @@ class _GameDetailScreenState extends State<GameDetailScreen> {
                           end: Alignment.bottomCenter,
                           colors: [
                             Colors.transparent,
-                            AppTheme.backgroundColor.withOpacity(0.8),
-                            AppTheme.backgroundColor,
+                            AppTheme.backgroundColor.withOpacity(0.1),
+                            
                           ],
                         ),
                       ),
